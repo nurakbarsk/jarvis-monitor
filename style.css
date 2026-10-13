@@ -997,12 +997,12 @@ button {
 
 .attachment-filename {
   font-size: 12px;
-  font-weight: 500;
-  color: #15803d;
-  background: #f0fdf4;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: var(--color-primary-soft);
   padding: 4px 10px;
-  border-radius: var(--radius-xs, 4px);
-  border: 1px solid #bbf7d0;
+  border-radius: var(--radius-xs);
+  border: 1px solid rgba(212, 242, 92, 0.7);
   max-width: 280px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1016,7 +1016,7 @@ button {
   width: 22px;
   height: 22px;
   font-size: 12px;
-  color: var(--color-text-muted, #94a3b8);
+  color: var(--color-text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -1026,30 +1026,8 @@ button {
 }
 
 .btn-clear-attachment:hover {
-  color: var(--color-danger, #ef4444);
-  background: rgba(239, 68, 68, 0.1);
-}
-
-/* Tombol submit hijau untuk laporan kendala */
-.btn-submit-ticket,
-#submit-ticket {
-  background: #16a34a !important;
-  color: #ffffff !important;
-  border: 1px solid #15803d !important;
-  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.25);
-  font-weight: 600;
-  transition: background 150ms ease, transform 100ms ease;
-}
-
-.btn-submit-ticket:hover:not(:disabled),
-#submit-ticket:hover:not(:disabled) {
-  background: #15803d !important;
-  color: #ffffff !important;
-}
-
-.btn-submit-ticket:active:not(:disabled),
-#submit-ticket:active:not(:disabled) {
-  transform: scale(0.98);
+  color: var(--color-danger);
+  background: rgba(229, 72, 77, 0.1);
 }
 
 .chevron {

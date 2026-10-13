@@ -249,7 +249,7 @@
                 </div>
                 <div class="form-foot">
                   <p class="feedback" id="form-feedback" role="status" aria-live="polite"></p>
-                  <button class="btn btn-primary btn-submit-ticket" id="submit-ticket" type="submit">Kirim Laporan Kendala</button>
+                  <button class="btn btn-primary" id="submit-ticket" type="submit">Kirim Laporan Kendala</button>
                 </div>
               </form>
             </section>
