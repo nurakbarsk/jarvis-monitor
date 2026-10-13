@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=2.2" />
   </head>
   <body>
     <div class="backdrop" id="backdrop"></div>
@@ -194,9 +194,25 @@
                   <button class="filter-btn is-active" type="button" data-filter="all" aria-pressed="true">Semua</button>
                   <button class="filter-btn" type="button" data-filter="fitur" aria-pressed="false">Fitur</button>
                   <button class="filter-btn" type="button" data-filter="bugfix" aria-pressed="false">Bugfix</button>
+                  <button class="filter-btn" type="button" data-filter="update" aria-pressed="false">Update</button>
                 </div>
               </div>
               <div class="feed" id="changelog-list"></div>
+              <div class="pagination-bar" id="changelog-pagination" hidden>
+                <button class="pagination-btn" id="changelog-prev" type="button" aria-label="Halaman sebelumnya">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                  <span>Prev</span>
+                </button>
+                <span class="pagination-info" id="changelog-page-info">Halaman 1 dari 1</span>
+                <button class="pagination-btn" id="changelog-next" type="button" aria-label="Halaman berikutnya">
+                  <span>Next</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </div>
             </section>
 
             <!-- Bagian 4: Formulir Lapor Bug / Ide Fitur Yayasan -->
@@ -375,6 +391,6 @@
       </div>
     </div>
 
-    <script src="portal.js"></script>
+    <script src="portal.js?v=2.2"></script>
   </body>
 </html>
