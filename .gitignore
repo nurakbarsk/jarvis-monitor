@@ -6,5 +6,5 @@ monitor.db
 monitor.db-wal
 monitor.db-shm
 *.zip
-public/uploads/*
-!public/uploads/.gitkeep
+uploads/*
+!uploads/.gitkeep
