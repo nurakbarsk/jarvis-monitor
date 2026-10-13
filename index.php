@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=2.1" />
   </head>
   <body>
     <div class="backdrop" id="backdrop"></div>
@@ -150,7 +150,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" />
               </svg>
-              <span>+ Proyek</span>
+              <span>Proyek</span>
             </button>
             <a class="btn btn-ghost" href="portal.php" target="_blank" rel="noopener" title="Buka Portal Klien / Yayasan">
               <span>Portal Klien ↗</span>
