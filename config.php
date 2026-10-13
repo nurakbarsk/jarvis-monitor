@@ -98,12 +98,13 @@ function getDb(): PDO
 }
 
 /**
- * Kirim notifikasi pesan ke Telegram Bot via cURL native
+ * Kirim notifikasi pesan atau foto langsung ke Telegram Bot via cURL native
  *
  * @param string $message Format teks atau HTML
+ * @param string|null $imagePath Path absolut berkas gambar di server (jika ada)
  * @return bool
  */
-function sendTelegramNotification(string $message): bool
+function sendTelegramNotification(string $message, ?string $imagePath = null): bool
 {
     $token = trim(TELEGRAM_BOT_TOKEN);
     $chatId = trim(TELEGRAM_CHAT_ID);
@@ -112,12 +113,49 @@ function sendTelegramNotification(string $message): bool
         return false;
     }
 
+    // 1. Jika ada lampiran gambar dan berkasnya ada di server, kirim menggunakan sendPhoto
+    if (!empty($imagePath) && file_exists($imagePath) && is_file($imagePath)) {
+        $url = "https://api.telegram.org/bot{$token}/sendPhoto";
+        $caption = mb_substr($message, 0, 1020);
+
+        $mime = @mime_content_type($imagePath) ?: 'image/jpeg';
+        $cFile = new CURLFile($imagePath, $mime, basename($imagePath));
+
+        $payload = [
+            'chat_id'    => $chatId,
+            'photo'      => $cFile,
+            'caption'    => $caption,
+            'parse_mode' => 'HTML',
+        ];
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            return true;
+        }
+        // Jika gagal mengirim foto (misal ukuran terlalu besar/format), fallback ke text biasa di bawah
+    }
+
+    // 2. Kirim pesan teks biasa (sendMessage)
     $url = "https://api.telegram.org/bot{$token}/sendMessage";
     $payload = [
         'chat_id'                  => $chatId,
         'text'                     => $message,
         'parse_mode'               => 'HTML',
-        'disable_web_page_preview' => true,
+        'disable_web_page_preview' => false,
     ];
 
     $ch = curl_init();
@@ -127,7 +165,7 @@ function sendTelegramNotification(string $message): bool
         CURLOPT_POSTFIELDS     => http_build_query($payload),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CONNECTTIMEOUT => 3,
-        CURLOPT_TIMEOUT        => 5,
+        CURLOPT_TIMEOUT        => 6,
         CURLOPT_SSL_VERIFYPEER => true,
     ]);
 

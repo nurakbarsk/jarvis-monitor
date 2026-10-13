@@ -497,18 +497,28 @@ try {
                 $stmtGet->execute([$ticketId]);
                 $newTicket = $stmtGet->fetch();
 
-                // Kirim notifikasi Telegram
-                $icon = $category === 'Ide' ? '💡' : '🔴';
-                $siteUrl = rtrim((string)(getenv('APP_URL') ?: 'https://matla.id/monitor/'), '/');
-                $imgNotice = $imageUrl ? "\n📷 <b>Bukti:</b> <a href=\"{$siteUrl}/{$imageUrl}\">Lihat Screenshot</a>" : '';
+                // Kirim notifikasi Telegram (dengan foto langsung jika ada screenshot)
+                $icon = $category === 'Ide' ? '💡' : '⚠️';
+                $tag = $category === 'Ide' ? '[USULAN IDE BARU]' : '[LAPORAN BUG BARU]';
 
-                $teleMsg = "{$icon} <b>Tiket Baru: {$projectName} (#{$ticketId})</b>\n" .
-                    "Kategori: <b>{$category}</b>\n" .
+                $teleMsg = "{$icon} <b>{$tag}</b>\n" .
+                    "ID: <b>#{$ticketId}</b>\n" .
+                    "Proyek: <b>{$projectName}</b>\n" .
                     "Pelapor: <b>" . htmlspecialchars($reporterName) . "</b>\n" .
-                    "Deskripsi: <i>" . htmlspecialchars($description) . "</i>" .
-                    $imgNotice;
+                    "Kategori: <b>{$category}</b>\n" .
+                    "Status: <b>Open</b>\n" .
+                    ($imageUrl ? "Bukti/Screenshot: <b>Ada lampiran (terlampir)</b>\n\n" : "\n") .
+                    "<b>Deskripsi Kendala:</b>\n" . htmlspecialchars($description);
 
-                sendTelegramNotification($teleMsg);
+                $localImagePath = null;
+                if (!empty($imageUrl)) {
+                    $possiblePath = UPLOAD_DIR . basename($imageUrl);
+                    if (file_exists($possiblePath) && is_file($possiblePath)) {
+                        $localImagePath = $possiblePath;
+                    }
+                }
+
+                sendTelegramNotification($teleMsg, $localImagePath);
 
                 jsonResponse([
                     'ok'      => true,
