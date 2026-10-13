@@ -14,6 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" type="image/png" href="logo.png" />
     <link rel="stylesheet" href="style.css?v=2.2" />
   </head>
   <body>
@@ -29,13 +30,7 @@
         </span>
       </button>
       <div class="mobile-brand">
-        <div class="brand-mark brand-mark-sm" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3v3" />
-            <circle cx="12" cy="14" r="7" />
-            <path d="M9 14h6" />
-          </svg>
-        </div>
+        <img src="logo.png" alt="Logo Jarvis" class="brand-logo brand-logo-sm" />
         <span class="mobile-brand-title">Jarvis Admin</span>
       </div>
       <div class="mobile-topbar-spacer" aria-hidden="true"></div>
@@ -44,13 +39,7 @@
     <div class="app-shell">
       <aside class="sidebar" id="sidebar">
         <div class="brand">
-          <div class="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3v3" />
-              <circle cx="12" cy="14" r="7" />
-              <path d="M9 14h6" />
-            </svg>
-          </div>
+          <img src="logo.png" alt="Logo Jarvis" class="brand-logo" />
           <div>
             <span class="brand-name">Jarvis Admin</span>
             <span class="brand-tag">Developer Console</span>
@@ -133,7 +122,10 @@
               <path d="M4 7h16M4 12h16M4 17h16" />
             </svg>
           </button>
-          <h1 class="greeting" id="greeting">Developer Console 👋</h1>
+          <div class="topbar-title-wrap">
+            <img src="logo.png" alt="Logo Jarvis" class="brand-logo" />
+            <h1 class="greeting" id="greeting">Developer Console 👋</h1>
+          </div>
           <div class="topbar-actions">
             <div class="project-selector-wrapper">
               <label class="sr-only" for="project-switcher">Pilih proyek</label>

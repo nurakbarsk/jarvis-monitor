@@ -14,6 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" type="image/png" href="logo.png" />
     <link rel="stylesheet" href="style.css?v=2.2" />
   </head>
   <body>
@@ -29,12 +30,7 @@
         </span>
       </button>
       <div class="mobile-brand">
-        <div class="brand-mark brand-mark-sm" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-            <path d="M6 12v5c3 3 9 3 12 0v-5" />
-          </svg>
-        </div>
+        <img src="logo.png" alt="Portal Yayasan" class="brand-logo brand-logo-sm" />
         <span class="mobile-brand-title">Portal Yayasan</span>
       </div>
       <div class="mobile-topbar-spacer" aria-hidden="true"></div>
@@ -43,12 +39,7 @@
     <div class="app-shell">
       <aside class="sidebar" id="sidebar">
         <div class="brand">
-          <div class="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-              <path d="M6 12v5c3 3 9 3 12 0v-5" />
-            </svg>
-          </div>
+          <img src="logo.png" alt="Portal Yayasan" class="brand-logo" />
           <div>
             <span class="brand-name">Portal Yayasan</span>
             <span class="brand-tag">Client &amp; Campus</span>
@@ -129,7 +120,10 @@
             </svg>
           </button>
           <div class="topbar-heading">
-            <h1 class="greeting" id="greeting">Portal Matla</h1>
+            <div class="topbar-title-wrap">
+              <img src="logo.png" alt="Portal Yayasan" class="brand-logo" />
+              <h1 class="greeting" id="greeting">Portal Matla</h1>
+            </div>
             <p class="greeting-sub" id="greeting-sub">Pantau panduan fitur, time table bulanan, dan laporkan kendala operasional.</p>
           </div>
         </header>

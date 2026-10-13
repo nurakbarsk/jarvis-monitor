@@ -131,6 +131,20 @@ button {
   padding: 4px 4px 20px;
 }
 
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.brand-logo-sm {
+  width: 32px;
+  height: 32px;
+}
+
 .brand-mark {
   width: 36px;
   height: 36px;
@@ -353,6 +367,19 @@ button {
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
+}
+
+.topbar-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.topbar-title-wrap .brand-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
 }
 
 .greeting {
