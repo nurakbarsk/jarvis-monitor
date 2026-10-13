@@ -1,10 +1,12 @@
 (() => {
   const STORAGE_KEY = "jarvis:selected_project";
+  const ITEMS_PER_PAGE = 5;
 
   const state = {
     projects: [],
     currentProject: null,
     changelogs: [],
+    currentPage: 1,
     tickets: [],
     features: [],
     timetable: [],
@@ -33,6 +35,10 @@
     trend: $("activity-trend"),
     changelog: $("changelog-list"),
     btnSyncGithub: $("btn-sync-github"),
+    changelogPagination: $("changelog-pagination"),
+    changelogPrev: $("changelog-prev"),
+    changelogNext: $("changelog-next"),
+    changelogPageInfo: $("changelog-page-info"),
     featureList: $("feature-list"),
     btnOpenAddFeature: $("btn-open-add-feature"),
     timetableAdminList: $("timetable-admin-list"),
@@ -237,6 +243,7 @@
           <h3>Belum ada proyek dipilih</h3>
           <p>Tambahkan proyek baru melalui tombol <strong>+ Proyek</strong> di atas.</p>
         </div>`;
+      if (els.changelogPagination) els.changelogPagination.hidden = true;
       return;
     }
 
@@ -250,13 +257,22 @@
           <div class="empty-state">
             <div class="empty-icon">${icon("git")}</div>
             <h3>Belum ada commit terdeteksi</h3>
-            <p>Hubungkan webhook repositori <strong>${escapeHtml(state.currentProject.name)}</strong> ke endpoint Jarvis: <code>POST /api/webhook/github</code></p>
+            <p>Hubungkan webhook repositori <strong>${escapeHtml(state.currentProject.name)}</strong> ke endpoint Jarvis: <code>POST /api/webhook/github</code> atau klik tombol <strong>Sync</strong> di atas.</p>
           </div>`;
       }
+      if (els.changelogPagination) els.changelogPagination.hidden = true;
       return;
     }
 
-    els.changelog.innerHTML = items
+    // Logika Pagination Frontend
+    const totalPages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
+    if (state.currentPage > totalPages) state.currentPage = totalPages;
+    if (state.currentPage < 1) state.currentPage = 1;
+
+    const startIdx = (state.currentPage - 1) * ITEMS_PER_PAGE;
+    const pagedItems = items.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+    els.changelog.innerHTML = pagedItems
       .map((item) => {
         const meta = TYPE_META[item.commit_type] || TYPE_META.update;
         return `<article class="feed-item">
@@ -269,6 +285,20 @@
         </article>`;
       })
       .join("");
+
+    // Update Navigasi Pagination
+    if (els.changelogPagination) {
+      els.changelogPagination.hidden = false;
+      if (els.changelogPrev) {
+        els.changelogPrev.disabled = state.currentPage <= 1;
+      }
+      if (els.changelogNext) {
+        els.changelogNext.disabled = state.currentPage >= totalPages;
+      }
+      if (els.changelogPageInfo) {
+        els.changelogPageInfo.textContent = `Halaman ${state.currentPage} dari ${totalPages}`;
+      }
+    }
   }
 
   function renderFeatures() {
@@ -709,6 +739,7 @@
   function setProject(project) {
     if (!project) return;
     state.currentProject = project;
+    state.currentPage = 1;
     localStorage.setItem(STORAGE_KEY, project.name);
     els.switcher.value = project.name;
     els.btnDeleteProject.hidden = false;
@@ -949,12 +980,14 @@
 
   els.search.addEventListener("input", (event) => {
     state.search = event.target.value;
+    state.currentPage = 1;
     renderChangelog();
   });
 
   document.querySelectorAll("[data-filter]").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.filter = btn.dataset.filter;
+      state.currentPage = 1;
       document.querySelectorAll("[data-filter]").forEach((b) => {
         const active = b === btn;
         b.classList.toggle("is-active", active);
@@ -964,26 +997,49 @@
     });
   });
 
+  if (els.changelogPrev) {
+    els.changelogPrev.addEventListener("click", () => {
+      if (state.currentPage > 1) {
+        state.currentPage--;
+        renderChangelog();
+      }
+    });
+  }
+
+  if (els.changelogNext) {
+    els.changelogNext.addEventListener("click", () => {
+      const items = filteredLogs();
+      const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+      if (state.currentPage < totalPages) {
+        state.currentPage++;
+        renderChangelog();
+      }
+    });
+  }
+
   if (els.btnSyncGithub) {
     els.btnSyncGithub.addEventListener("click", async () => {
       if (!state.currentProject) {
         alert("Pilih proyek terlebih dahulu.");
         return;
       }
-      const origHtml = els.btnSyncGithub.innerHTML;
+
+      els.btnSyncGithub.disabled = true;
+      els.btnSyncGithub.classList.add("is-syncing");
+
       try {
-        els.btnSyncGithub.disabled = true;
-        els.btnSyncGithub.innerHTML = `<span style="display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;"></span> <span>Sync…</span>`;
-        const res = await fetch(`api.php?action=sync_github&project=${encodeURIComponent(state.currentProject.name)}`);
+        const res = await fetch(`sync_github.php?project=${encodeURIComponent(state.currentProject.name)}`);
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Gagal menyinkronkan commit");
+        if (!res.ok) {
+          throw new Error(data.error || "Gagal menyinkronkan commit GitHub.");
+        }
+        state.currentPage = 1;
         await loadData({ silent: true });
-        alert(data.message || "Sinkronisasi commit GitHub selesai!");
       } catch (err) {
         alert("Gagal sinkronisasi: " + err.message);
       } finally {
+        els.btnSyncGithub.classList.remove("is-syncing");
         els.btnSyncGithub.disabled = false;
-        els.btnSyncGithub.innerHTML = origHtml;
       }
     });
   }

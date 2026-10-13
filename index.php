@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css?v=2.1" />
+    <link rel="stylesheet" href="style.css?v=2.2" />
   </head>
   <body>
     <div class="backdrop" id="backdrop"></div>
@@ -271,14 +271,14 @@
               </section>
 
               <section class="card" id="changelog-card" aria-labelledby="changelog-title">
-                <div class="card-header">
-                  <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="card-header changelog-header">
+                  <div class="changelog-title-group">
                     <h2 id="changelog-title">Riwayat Push GitHub</h2>
-                    <button class="btn btn-ghost" id="btn-sync-github" type="button" title="Tarik seluruh riwayat commit dari GitHub API" style="padding: 3px 8px; font-size: 11px; height: 26px; border-radius: 6px;">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <button class="btn-sync-pill" id="btn-sync-github" type="button" title="Tarik seluruh riwayat commit dari GitHub API">
+                      <svg class="sync-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
                       </svg>
-                      <span>Sync</span>
+                      <span class="sync-label">Sync</span>
                     </button>
                   </div>
                   <div class="filter-group" role="group" aria-label="Filter tipe commit">
@@ -289,6 +289,21 @@
                   </div>
                 </div>
                 <div class="feed" id="changelog-list"></div>
+                <div class="pagination-bar" id="changelog-pagination" hidden>
+                  <button class="pagination-btn" id="changelog-prev" type="button" aria-label="Halaman sebelumnya">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    <span>Prev</span>
+                  </button>
+                  <span class="pagination-info" id="changelog-page-info">Halaman 1 dari 1</span>
+                  <button class="pagination-btn" id="changelog-next" type="button" aria-label="Halaman berikutnya">
+                    <span>Next</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
+                </div>
               </section>
             </div>
 
@@ -504,6 +519,6 @@
       </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=2.2"></script>
   </body>
 </html>
