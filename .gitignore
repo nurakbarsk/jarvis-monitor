@@ -8,3 +8,5 @@ monitor.db-shm
 *.zip
 uploads/*
 !uploads/.gitkeep
+public/uploads/*
+!public/uploads/.gitkeep

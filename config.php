@@ -36,9 +36,9 @@ define('DB_PORT', (int)(getenv('DB_PORT') ?: 3306));
 define('TELEGRAM_BOT_TOKEN', getenv('TELEGRAM_BOT_TOKEN') ?: '8681632478:AAFHhc-GOVOGUHS133Xd70jixvoKR1llfwI');
 define('TELEGRAM_CHAT_ID', getenv('TELEGRAM_CHAT_ID') ?: '1142103262');
 
-// Path penyimpanan berkas screenshot upload
-define('UPLOAD_DIR', __DIR__ . '/uploads/');
-define('UPLOAD_URL', 'uploads/'); // Relative URL untuk browser
+// Path penyimpanan berkas screenshot upload (di dalam folder public untuk web akses)
+define('UPLOAD_DIR', is_dir(__DIR__ . '/public/uploads') ? __DIR__ . '/public/uploads/' : __DIR__ . '/public/uploads/');
+define('UPLOAD_URL', 'uploads/'); // Relative URL untuk browser dari document root /public
 
 /**
  * Singleton koneksi PDO MySQL

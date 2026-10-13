@@ -1,12 +1,12 @@
 # ========================================================================
-# Apache / LiteSpeed Configuration: Jarvis Monitor
-# Subfolder: /monitor/ (https://matla.id/monitor/)
+# Root Apache / LiteSpeed Configuration: Jarvis Monitor
+# Melindungi file backend root dan mengarahkan traffic ke /public
 # ========================================================================
 
 Options -Indexes -MultiViews
 
-# Lindungi file sensitif dari akses langsung browser
-<FilesMatch "^(config\.php|schema\.sql|\.env|\.git.*|package\.json|package-lock\.json|.*\.log|.*\.db.*)$">
+# Blokir akses langsung ke file konfigurasi backend dan file sensitif
+<FilesMatch "^(config\.php|sync_github\.php|schema\.sql|\.env.*|\.git.*|.*\.zip)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
@@ -16,28 +16,10 @@ Options -Indexes -MultiViews
     </IfModule>
 </FilesMatch>
 
-# Pengaturan batas ukuran upload (LiteSpeed / Apache PHP Handler)
-<IfModule mod_php.c>
-    php_value upload_max_filesize 10M
-    php_value post_max_size 12M
-    php_value max_execution_time 60
-    php_value memory_limit 128M
-</IfModule>
-<IfModule mod_php8.c>
-    php_value upload_max_filesize 10M
-    php_value post_max_size 12M
-    php_value max_execution_time 60
-    php_value memory_limit 128M
-</IfModule>
-
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /monitor/
 
-    # Rute bersih untuk portal: https://matla.id/monitor/portal -> portal.php
-    RewriteRule ^portal/?$ portal.php [QSA,L]
-
-    # Rute bersih untuk API: https://matla.id/monitor/api/... -> api.php?route=...
-    RewriteRule ^api/(.*)$ api.php?route=$1 [QSA,L]
-    RewriteRule ^api/?$ api.php [QSA,L]
+    # Fallback: jika Document Root server belum diatur langsung ke /public, forward ke /public
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

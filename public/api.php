@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/config.php';
+require_once dirname(__DIR__) . '/config.php';
 
 // Set header JSON & CORS
 header('Content-Type: application/json; charset=utf-8');
@@ -285,7 +285,7 @@ try {
                 // Handle remove image flag
                 $removeImage = ($input['remove_image'] ?? '') === 'true' || ($input['remove_image'] ?? '') === true;
                 if ($removeImage && !empty($imageUrl)) {
-                    $oldFilePath = __DIR__ . '/' . ltrim($imageUrl, '/');
+                    $oldFilePath = UPLOAD_DIR . basename($imageUrl);
                     if (file_exists($oldFilePath) && is_file($oldFilePath)) {
                         @unlink($oldFilePath);
                     }
@@ -312,7 +312,7 @@ try {
 
                     // Hapus gambar lama jika ada
                     if (!empty($imageUrl)) {
-                        $oldFilePath = __DIR__ . '/' . ltrim($imageUrl, '/');
+                        $oldFilePath = UPLOAD_DIR . basename($imageUrl);
                         if (file_exists($oldFilePath) && is_file($oldFilePath)) {
                             @unlink($oldFilePath);
                         }
@@ -432,7 +432,7 @@ try {
 
                 // Hapus berkas fisik jika ada
                 if (!empty($ticket['image_url'])) {
-                    $filePath = __DIR__ . '/' . ltrim($ticket['image_url'], '/');
+                    $filePath = UPLOAD_DIR . basename($ticket['image_url']);
                     if (file_exists($filePath) && is_file($filePath)) {
                         @unlink($filePath);
                     }
@@ -782,7 +782,7 @@ try {
 
             // Hapus berkas gambar jika ada
             if (!empty($ticket['image_url'])) {
-                $filePath = __DIR__ . '/' . ltrim($ticket['image_url'], '/');
+                $filePath = UPLOAD_DIR . basename($ticket['image_url']);
                 if (file_exists($filePath) && is_file($filePath)) {
                     @unlink($filePath);
                 }
@@ -935,7 +935,7 @@ try {
          * 14. GITHUB COMMIT SYNC (API INTEGRATION)
          * ----------------------------------------------------------------- */
         case 'sync_github':
-            require_once __DIR__ . '/sync_github.php';
+            require_once dirname(__DIR__) . '/sync_github.php';
 
             $projectName = trim((string)($input['project'] ?? ($input['project_name'] ?? '')));
             $token = trim((string)($input['token'] ?? '')) ?: null;

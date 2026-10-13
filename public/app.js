@@ -1078,7 +1078,7 @@
       els.btnSyncGithub.classList.add("is-syncing");
 
       try {
-        const res = await fetch(`sync_github.php?project=${encodeURIComponent(state.currentProject.name)}`);
+        const res = await fetch(`api.php?action=sync_github&project=${encodeURIComponent(state.currentProject.name)}`);
         const data = await res.json();
         if (!res.ok) {
           throw new Error(data.error || "Gagal menyinkronkan commit GitHub.");
