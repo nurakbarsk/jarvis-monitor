@@ -36,9 +36,27 @@ define('DB_PORT', (int)(getenv('DB_PORT') ?: 3306));
 define('TELEGRAM_BOT_TOKEN', getenv('TELEGRAM_BOT_TOKEN') ?: '8681632478:AAFHhc-GOVOGUHS133Xd70jixvoKR1llfwI');
 define('TELEGRAM_CHAT_ID', getenv('TELEGRAM_CHAT_ID') ?: '1142103262');
 
+// Mulai session PHP jika belum aktif
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Konfigurasi PIN Autentikasi Admin Developer (Default: 260704)
+define('ADMIN_PIN', getenv('ADMIN_PIN') ?: '260704');
+
 // Path penyimpanan berkas screenshot upload (di dalam folder public untuk web akses)
 define('UPLOAD_DIR', is_dir(__DIR__ . '/public/uploads') ? __DIR__ . '/public/uploads/' : __DIR__ . '/public/uploads/');
 define('UPLOAD_URL', 'uploads/'); // Relative URL untuk browser dari document root /public
+
+/**
+ * Cek apakah session admin telah diautentikasi dengan PIN
+ *
+ * @return bool
+ */
+function isAdminLoggedIn(): bool
+{
+    return !empty($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+}
 
 /**
  * Singleton koneksi PDO MySQL

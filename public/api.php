@@ -57,11 +57,64 @@ if (!empty($rawInput) && str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'applicati
     }
 }
 
+// Helper untuk memeriksa sesi admin
+function requireAdminAuth(): void
+{
+    if (!isAdminLoggedIn()) {
+        jsonResponse([
+            'error'        => 'Akses ditolak. Sesi admin belum terautentikasi. Silakan masukkan PIN.',
+            'unauthorized' => true,
+        ], 401);
+    }
+}
+
 // Helper untuk membaca parameter dari JSON body atau $_POST atau $_GET
 $input = array_merge($_GET, $_POST, $jsonBody);
 
 try {
     switch ($action) {
+        /* -----------------------------------------------------------------
+         * 0. AUTHENTICATION (PIN LOGIN & LOGOUT)
+         * ----------------------------------------------------------------- */
+        case 'login_pin':
+            if ($method !== 'POST') {
+                jsonResponse(['error' => 'Metode HTTP tidak didukung untuk login PIN.'], 405);
+            }
+            $pin = trim((string)($input['pin'] ?? ''));
+            if ($pin === '') {
+                jsonResponse(['error' => 'PIN wajib diisi.'], 400);
+            }
+            if ($pin !== ADMIN_PIN) {
+                jsonResponse(['error' => 'PIN salah, silakan coba lagi.'], 401);
+            }
+
+            $_SESSION['admin_logged_in'] = true;
+            $_SESSION['admin_logged_time'] = time();
+            jsonResponse([
+                'ok'      => true,
+                'message' => 'Autentikasi PIN berhasil.',
+            ]);
+            break;
+
+        case 'logout':
+            $_SESSION['admin_logged_in'] = false;
+            unset($_SESSION['admin_logged_in'], $_SESSION['admin_logged_time']);
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_destroy();
+            }
+            jsonResponse([
+                'ok'      => true,
+                'message' => 'Sesi admin berhasil diakhiri.',
+            ]);
+            break;
+
+        case 'check_auth':
+            jsonResponse([
+                'ok'            => true,
+                'authenticated' => isAdminLoggedIn(),
+            ]);
+            break;
+
         /* -----------------------------------------------------------------
          * 1. HEALTH CHECK
          * ----------------------------------------------------------------- */
@@ -84,6 +137,7 @@ try {
             }
 
             if ($method === 'POST') {
+                requireAdminAuth();
                 $repoUrl = trim((string)($input['repo_url'] ?? ''));
                 $clientName = trim((string)($input['client_name'] ?? ''));
 
@@ -118,6 +172,7 @@ try {
             }
 
             if ($method === 'DELETE') {
+                requireAdminAuth();
                 $id = (int)($input['id'] ?? 0);
                 if ($id <= 0) {
                     jsonResponse(['error' => 'ID proyek tidak valid.'], 400);
@@ -733,6 +788,7 @@ try {
          * 9. UPDATE TICKET STATUS (DEDICATED ACTION)
          * ----------------------------------------------------------------- */
         case 'update_ticket_status':
+            requireAdminAuth();
             $id = (int)($input['id'] ?? 0);
             $status = trim((string)($input['status'] ?? 'Open'));
 
@@ -767,6 +823,7 @@ try {
          * 10. DELETE TICKET (DEDICATED ACTION)
          * ----------------------------------------------------------------- */
         case 'delete_ticket':
+            requireAdminAuth();
             $id = (int)($input['id'] ?? 0);
             if ($id <= 0) {
                 jsonResponse(['error' => 'ID tiket tidak valid.'], 400);
@@ -829,6 +886,7 @@ try {
          * 12. FEATURES ALIASES (DELETE & UPDATE)
          * ----------------------------------------------------------------- */
         case 'delete_feature':
+            requireAdminAuth();
             $id = (int)($input['id'] ?? 0);
             if ($id <= 0) {
                 jsonResponse(['error' => 'ID fitur tidak valid.'], 400);
@@ -886,6 +944,7 @@ try {
          * 13. TIMETABLES ALIASES (DELETE & UPDATE STATUS)
          * ----------------------------------------------------------------- */
         case 'delete_timetable':
+            requireAdminAuth();
             $id = (int)($input['id'] ?? 0);
             if ($id <= 0) {
                 jsonResponse(['error' => 'ID task tidak valid.'], 400);
@@ -909,6 +968,7 @@ try {
             break;
 
         case 'update_timetable_status':
+            requireAdminAuth();
             $id = (int)($input['id'] ?? 0);
             $status = trim((string)($input['status'] ?? 'Planned'));
 
@@ -935,6 +995,7 @@ try {
          * 14. GITHUB COMMIT SYNC (API INTEGRATION)
          * ----------------------------------------------------------------- */
         case 'sync_github':
+            requireAdminAuth();
             require_once dirname(__DIR__) . '/sync_github.php';
 
             $projectName = trim((string)($input['project'] ?? ($input['project_name'] ?? '')));

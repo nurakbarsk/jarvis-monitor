@@ -1,3 +1,12 @@
+<?php
+/**
+ * Jarvis Monitor — Developer Admin Console
+ */
+declare(strict_types=1);
+
+require_once dirname(__DIR__) . '/config.php';
+$isLoggedIn = isAdminLoggedIn();
+?>
 <!DOCTYPE html>
 <html lang="id">
   <head>
@@ -15,9 +24,101 @@
       rel="stylesheet"
     />
     <link rel="icon" type="image/png" href="logo.png" />
-    <link rel="stylesheet" href="style.css?v=2.2" />
+    <link rel="stylesheet" href="style.css?v=2.3" />
   </head>
-  <body>
+  <body class="<?= $isLoggedIn ? 'is-authenticated' : 'is-locked' ?>">
+    <!-- Container Toast Notification Mengambang -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Modal Konfirmasi Kustom (Menggantikan confirm bawaan) -->
+    <div id="modal-confirm" class="modal-confirm-overlay" hidden>
+      <div class="modal-confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+        <div class="modal-confirm-icon-wrap" id="confirm-modal-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <h3 class="modal-confirm-title" id="confirm-modal-title">Konfirmasi Tindakan</h3>
+        <p class="modal-confirm-desc" id="confirm-modal-desc">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+        <div class="modal-confirm-actions">
+          <button type="button" class="btn btn-ghost" id="confirm-modal-cancel">Batal</button>
+          <button type="button" class="btn btn-danger" id="confirm-modal-ok">Ya, Lanjutkan</button>
+        </div>
+      </div>
+    </div>
+
+    <?php if (!$isLoggedIn): ?>
+    <!-- ========================================================================
+         LAYAR KEYPAD PIN ALA SMARTPHONE (SESUAI DESIGN.MD)
+         ======================================================================== -->
+    <div class="pin-screen-wrapper" id="pin-screen">
+      <div class="pin-card">
+        <div class="pin-header">
+          <div class="pin-brand-mark">
+            <img src="logo.png" alt="Logo Jarvis" class="pin-brand-logo" />
+          </div>
+          <h1 class="pin-title">Developer Console</h1>
+          <p class="pin-subtitle">Masukkan 6-digit PIN keamanan untuk mengakses dashboard.</p>
+        </div>
+
+        <div class="pin-dots-container" id="pin-dots">
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+        </div>
+
+        <p class="pin-error-msg" id="pin-error-msg" role="alert" aria-live="polite"></p>
+
+        <!-- Virtual Numeric Keypad 3x4 -->
+        <div class="pin-keypad" id="pin-keypad">
+          <button type="button" class="keypad-btn" data-key="1">1</button>
+          <button type="button" class="keypad-btn" data-key="2">2</button>
+          <button type="button" class="keypad-btn" data-key="3">3</button>
+
+          <button type="button" class="keypad-btn" data-key="4">4</button>
+          <button type="button" class="keypad-btn" data-key="5">5</button>
+          <button type="button" class="keypad-btn" data-key="6">6</button>
+
+          <button type="button" class="keypad-btn" data-key="7">7</button>
+          <button type="button" class="keypad-btn" data-key="8">8</button>
+          <button type="button" class="keypad-btn" data-key="9">9</button>
+
+          <button type="button" class="keypad-btn keypad-btn-fn" id="btn-pin-backspace" aria-label="Hapus digit" title="Hapus (Backspace)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+              <line x1="18" y1="9" x2="12" y2="15"></line>
+              <line x1="12" y1="9" x2="18" y2="15"></line>
+            </svg>
+          </button>
+          <button type="button" class="keypad-btn" data-key="0">0</button>
+          <button type="button" class="keypad-btn keypad-btn-fn keypad-btn-submit" id="btn-pin-submit" aria-label="Submit PIN" title="Masuk (Enter)">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <div class="pin-footer">
+          <a href="portal.php" class="pin-portal-link">
+            <span>Buka Portal Klien</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
+<?php exit; ?>
+<?php endif; ?>
     <div class="backdrop" id="backdrop"></div>
 
     <!-- Mobile / Tablet Sticky Topbar (< 1024px) -->
@@ -102,6 +203,14 @@
             </svg>
             <span>Portal Klien ↗</span>
           </a>
+          <button class="nav-item btn-logout" id="btn-logout" type="button" title="Kunci sesi admin (Logout)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Logout PIN</span>
+          </button>
         </nav>
         <div class="sidebar-spacer"></div>
         <div class="app-card">

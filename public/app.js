@@ -3,6 +3,232 @@
   const ITEMS_PER_PAGE = 5;
   const TIMETABLE_PER_PAGE = 5;
 
+  /* ==========================================================================
+   * 1. CUSTOM TOAST NOTIFICATION SYSTEM
+   * ========================================================================== */
+
+  function showToast(message, type = "info", duration = 3500) {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = `toast-item toast-${type}`;
+    toast.setAttribute("role", "alert");
+
+    const icons = {
+      success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+      error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    };
+
+    toast.innerHTML = `
+      <div class="toast-content">
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-msg">${message}</span>
+      </div>
+      <button type="button" class="toast-close" aria-label="Tutup notifikasi">&times;</button>
+    `;
+
+    const closeBtn = toast.querySelector(".toast-close");
+    let timer = null;
+
+    const dismiss = () => {
+      if (timer) clearTimeout(timer);
+      toast.classList.add("is-hiding");
+      setTimeout(() => toast.remove(), 220);
+    };
+
+    if (closeBtn) closeBtn.addEventListener("click", dismiss);
+    timer = setTimeout(dismiss, duration);
+    container.appendChild(toast);
+  }
+
+  /* ==========================================================================
+   * 2. CUSTOM CONFIRMATION MODAL
+   * ========================================================================== */
+
+  function showConfirmModal({ title = "Konfirmasi Tindakan", message, confirmText = "Ya, Lanjutkan", cancelText = "Batal", isDanger = true }) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById("modal-confirm");
+      if (!modal) {
+        resolve(window.confirm(message));
+        return;
+      }
+
+      const titleEl = document.getElementById("confirm-modal-title");
+      const descEl = document.getElementById("confirm-modal-desc");
+      const okBtn = document.getElementById("confirm-modal-ok");
+      const cancelBtn = document.getElementById("confirm-modal-cancel");
+
+      if (titleEl) titleEl.textContent = title;
+      if (descEl) descEl.textContent = message;
+      if (okBtn) {
+        okBtn.textContent = confirmText;
+        okBtn.className = isDanger ? "btn btn-danger" : "btn btn-primary";
+      }
+      if (cancelBtn) cancelBtn.textContent = cancelText;
+
+      modal.hidden = false;
+
+      const cleanup = () => {
+        modal.hidden = true;
+        okBtn.removeEventListener("click", onOk);
+        cancelBtn.removeEventListener("click", onCancel);
+        modal.removeEventListener("click", onOverlay);
+      };
+
+      const onOk = () => {
+        cleanup();
+        resolve(true);
+      };
+
+      const onCancel = () => {
+        cleanup();
+        resolve(false);
+      };
+
+      const onOverlay = (e) => {
+        if (e.target === modal) {
+          cleanup();
+          resolve(false);
+        }
+      };
+
+      okBtn.addEventListener("click", onOk);
+      cancelBtn.addEventListener("click", onCancel);
+      modal.addEventListener("click", onOverlay);
+    });
+  }
+
+  /* ==========================================================================
+   * 3. KEYPAD PIN AUTHENTICATION (GATEKEEPER)
+   * ========================================================================== */
+
+  const pinScreen = document.getElementById("pin-screen");
+  if (pinScreen) {
+    initPinKeypad();
+    return; // Berhenti jika dashboard terkunci di layar PIN
+  }
+
+  function initPinKeypad() {
+    let currentPin = "";
+    const maxPinLength = 6;
+    const dotsContainer = document.getElementById("pin-dots");
+    const dots = dotsContainer ? Array.from(dotsContainer.querySelectorAll(".pin-dot")) : [];
+    const errorMsg = document.getElementById("pin-error-msg");
+    const submitBtn = document.getElementById("btn-pin-submit");
+    const backspaceBtn = document.getElementById("btn-pin-backspace");
+    let isSubmitting = false;
+
+    function updateDots() {
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle("is-filled", idx < currentPin.length);
+        dot.classList.remove("is-error");
+      });
+      if (errorMsg) errorMsg.textContent = "";
+      if (dotsContainer) dotsContainer.classList.remove("shake");
+    }
+
+    function triggerError(msg) {
+      if (errorMsg) errorMsg.textContent = msg;
+      if (dotsContainer) {
+        dotsContainer.classList.add("shake");
+        dots.forEach((dot) => {
+          dot.classList.remove("is-filled");
+          dot.classList.add("is-error");
+        });
+        setTimeout(() => {
+          currentPin = "";
+          updateDots();
+        }, 800);
+      } else {
+        currentPin = "";
+        updateDots();
+      }
+      showToast(msg, "error");
+    }
+
+    async function submitPin() {
+      if (isSubmitting) return;
+      if (currentPin.length !== maxPinLength) {
+        triggerError(`Masukkan ${maxPinLength} digit PIN.`);
+        return;
+      }
+
+      isSubmitting = true;
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const res = await fetch("api.php?action=login_pin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: currentPin }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "PIN salah, silakan coba lagi.");
+        }
+
+        showToast("PIN valid! Mengalihkan ke dashboard...", "success", 2000);
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      } catch (err) {
+        triggerError(err.message);
+      } finally {
+        isSubmitting = false;
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    }
+
+    function inputDigit(digit) {
+      if (isSubmitting) return;
+      if (currentPin.length < maxPinLength) {
+        currentPin += digit;
+        updateDots();
+        if (currentPin.length === maxPinLength) {
+          setTimeout(submitPin, 120);
+        }
+      }
+    }
+
+    function backspace() {
+      if (isSubmitting) return;
+      if (currentPin.length > 0) {
+        currentPin = currentPin.slice(0, -1);
+        updateDots();
+      }
+    }
+
+    document.querySelectorAll("#pin-keypad .keypad-btn[data-key]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        inputDigit(btn.getAttribute("data-key"));
+      });
+    });
+
+    if (backspaceBtn) {
+      backspaceBtn.addEventListener("click", backspace);
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener("click", submitPin);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key >= "0" && e.key <= "9") {
+        inputDigit(e.key);
+      } else if (e.key === "Backspace") {
+        backspace();
+      } else if (e.key === "Enter") {
+        submitPin();
+      }
+    });
+  }
+
+  /* ==========================================================================
+   * 4. MAIN DASHBOARD LOGIC (AUTHENTICATED)
+   * ========================================================================== */
+
   const state = {
     projects: [],
     currentProject: null,
@@ -360,14 +586,21 @@
       btn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const id = btn.getAttribute("data-id");
-        if (!confirm("Hapus modul fitur ini?")) return;
+        const ok = await showConfirmModal({
+          title: "Hapus Modul Fitur",
+          message: "Apakah Anda yakin ingin menghapus modul fitur ini?",
+          confirmText: "Hapus Fitur",
+          isDanger: true,
+        });
+        if (!ok) return;
         try {
           const res = await fetch(`api.php?action=features&id=${id}`, { method: "DELETE" });
           const payload = await res.json();
           if (!res.ok) throw new Error(payload.error || "Gagal menghapus fitur");
+          showToast("Modul fitur berhasil dihapus.", "success");
           await loadData({ silent: true });
         } catch (err) {
-          alert(err.message);
+          showToast(err.message, "error");
         }
       });
     });
@@ -467,9 +700,10 @@
           });
           const payload = await res.json();
           if (!res.ok) throw new Error(payload.error || "Gagal mengubah status task");
+          showToast(`Status task diubah menjadi "${next}".`, "success");
           await loadData({ silent: true });
         } catch (err) {
-          alert(err.message);
+          showToast(err.message, "error");
           btn.disabled = false;
         }
       });
@@ -480,14 +714,21 @@
       btn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const id = btn.getAttribute("data-id");
-        if (!confirm("Hapus task time table ini?")) return;
+        const ok = await showConfirmModal({
+          title: "Hapus Task Time Table",
+          message: "Hapus agenda task time table bulanan ini?",
+          confirmText: "Hapus Task",
+          isDanger: true,
+        });
+        if (!ok) return;
         try {
           const res = await fetch(`api.php?action=timetables&id=${id}`, { method: "DELETE" });
           const payload = await res.json();
           if (!res.ok) throw new Error(payload.error || "Gagal menghapus task");
+          showToast("Task time table berhasil dihapus.", "success");
           await loadData({ silent: true });
         } catch (err) {
-          alert(err.message);
+          showToast(err.message, "error");
         }
       });
     });
@@ -583,9 +824,10 @@
           });
           const payload = await res.json();
           if (!res.ok) throw new Error(payload.error || "Gagal memperbarui tiket");
+          showToast("Status tiket diperbarui menjadi Resolved.", "success");
           await loadData({ silent: true });
         } catch (err) {
-          alert(err.message);
+          showToast(err.message, "error");
           btn.disabled = false;
         }
       });
@@ -595,7 +837,13 @@
     els.tickets.querySelectorAll(".btn-delete-ticket").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-ticket-id");
-        if (!confirm(`Hapus tiket #${id}? Tindakan ini tidak dapat dibatalkan.`)) return;
+        const ok = await showConfirmModal({
+          title: "Hapus Tiket Laporan",
+          message: `Hapus tiket #${id}? Tindakan ini permanen dan tidak dapat dibatalkan.`,
+          confirmText: "Hapus Tiket",
+          isDanger: true,
+        });
+        if (!ok) return;
 
         btn.disabled = true;
         btn.textContent = "Menghapus…";
@@ -603,9 +851,10 @@
           const res = await fetch(`api.php?action=tickets&id=${id}`, { method: "DELETE" });
           const payload = await res.json();
           if (!res.ok) throw new Error(payload.error || "Gagal menghapus tiket");
+          showToast("Tiket berhasil dihapus.", "success");
           await loadData({ silent: true });
         } catch (err) {
-          alert(err.message);
+          showToast(err.message, "error");
           btn.disabled = false;
         }
       });
@@ -849,27 +1098,31 @@
   // Delete project
   els.btnDeleteProject.addEventListener("click", async () => {
     if (!state.currentProject) return;
-    const confirmDelete = confirm(
-      `Hapus proyek "${state.currentProject.name}"?\nSemua modul fitur, tiket, dan commit proyek ini akan terhapus permanen.`
-    );
-    if (!confirmDelete) return;
+    const ok = await showConfirmModal({
+      title: "Hapus Proyek",
+      message: `Hapus proyek "${state.currentProject.name}"? Semua modul fitur, tiket, dan riwayat commit proyek ini akan terhapus permanen.`,
+      confirmText: "Ya, Hapus Proyek",
+      isDanger: true,
+    });
+    if (!ok) return;
 
     try {
       const res = await fetch(`api.php?action=projects&id=${state.currentProject.id}`, { method: "DELETE" });
       const payload = await res.json();
       if (!res.ok) throw new Error(payload.error || "Gagal menghapus proyek");
 
+      showToast(`Proyek "${state.currentProject.name}" berhasil dihapus.`, "success");
       localStorage.removeItem(STORAGE_KEY);
       await loadProjects();
     } catch (error) {
-      alert(error.message);
+      showToast(error.message, "error");
     }
   });
 
   // Modal Tambah Fitur
   function openFeatureModal() {
     if (!state.currentProject) {
-      alert("Pilih atau buat proyek terlebih dahulu.");
+      showToast("Pilih atau buat proyek terlebih dahulu.", "info");
       return;
     }
     els.modalFeature.hidden = false;
@@ -935,7 +1188,7 @@
   // Modal Tambah Timetable
   function openTimetableModal() {
     if (!state.currentProject) {
-      alert("Pilih atau buat proyek terlebih dahulu.");
+      showToast("Pilih atau buat proyek terlebih dahulu.", "info");
       return;
     }
     if (els.modalTimetable) {
@@ -1070,12 +1323,13 @@
   if (els.btnSyncGithub) {
     els.btnSyncGithub.addEventListener("click", async () => {
       if (!state.currentProject) {
-        alert("Pilih proyek terlebih dahulu.");
+        showToast("Pilih proyek terlebih dahulu.", "info");
         return;
       }
 
       els.btnSyncGithub.disabled = true;
       els.btnSyncGithub.classList.add("is-syncing");
+      showToast("Menyinkronkan commit dari GitHub...", "info", 2000);
 
       try {
         const res = await fetch(`api.php?action=sync_github&project=${encodeURIComponent(state.currentProject.name)}`);
@@ -1083,10 +1337,11 @@
         if (!res.ok) {
           throw new Error(data.error || "Gagal menyinkronkan commit GitHub.");
         }
+        showToast(data.message || "Sinkronisasi commit GitHub berhasil!", "success");
         state.currentPage = 1;
         await loadData({ silent: true });
       } catch (err) {
-        alert("Gagal sinkronisasi: " + err.message);
+        showToast("Gagal sinkronisasi: " + err.message, "error");
       } finally {
         els.btnSyncGithub.classList.remove("is-syncing");
         els.btnSyncGithub.disabled = false;
@@ -1148,9 +1403,28 @@
     item.addEventListener("click", closeSidebar);
   });
 
-  setInterval(() => {
-    if (!document.hidden) loadData({ silent: true });
-  }, 30000);
+  // Handler Logout PIN
+  const btnLogout = $("btn-logout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", async () => {
+      const ok = await showConfirmModal({
+        title: "Keluar dari Console",
+        message: "Kunci sesi developer dan kembali ke layar autentikasi PIN?",
+        confirmText: "Ya, Logout",
+        cancelText: "Batal",
+        isDanger: false,
+      });
+      if (!ok) return;
+
+      try {
+        await fetch("api.php?action=logout", { method: "POST" });
+        showToast("Sesi berhasil diakhiri.", "info", 1500);
+        setTimeout(() => window.location.reload(), 400);
+      } catch {
+        window.location.reload();
+      }
+    });
+  }
 
   renderCalendar();
   loadHealth();
