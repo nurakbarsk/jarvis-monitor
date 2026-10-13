@@ -635,6 +635,48 @@ $isLoggedIn = isAdminLoggedIn();
       </div>
     </div>
 
-    <script src="app.js?v=2.2"></script>
+    <!-- Modal Balasan Developer untuk Tiket -->
+    <div class="modal-backdrop" id="modal-reply" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-reply-title">
+        <div class="modal-header">
+          <div>
+            <h2 id="modal-reply-title">Tanggapi Tiket Kendala</h2>
+            <p class="modal-sub" id="modal-reply-subtitle">Beri balasan resmi developer kepada pelapor kendala.</p>
+          </div>
+          <button class="icon-btn" id="modal-reply-close" type="button" aria-label="Tutup modal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <form class="form-grid" id="reply-form" novalidate>
+          <input type="hidden" id="reply-ticket-id" name="id" />
+          <div class="field">
+            <label>Tiket Terkait</label>
+            <div id="reply-ticket-preview" class="ticket-preview-box"></div>
+          </div>
+          <div class="field">
+            <label for="reply-content">Pesan Balasan Developer <span class="required">*</span></label>
+            <textarea id="reply-content" name="dev_reply" rows="4" placeholder="Tuliskan penjelasan kendala atau konfirmasi perbaikan kepada pelapor..." required></textarea>
+          </div>
+          <div class="field">
+            <label for="reply-status">Perbarui Status Tiket Sekaligus</label>
+            <select id="reply-status" name="status">
+              <option value="">Biarkan Status Saat Ini</option>
+              <option value="In Progress">⏳ In Progress (Sedang Dikerjakan)</option>
+              <option value="Resolved">✓ Resolved (Tuntas/Selesai)</option>
+              <option value="Open">🚨 Open (Menunggu)</option>
+            </select>
+          </div>
+          <div class="modal-foot">
+            <p class="feedback" id="reply-feedback" role="status" aria-live="polite"></p>
+            <div class="modal-actions">
+              <button class="btn btn-ghost" id="modal-reply-cancel" type="button">Batal</button>
+              <button class="btn btn-primary" id="btn-submit-reply" type="submit">Kirim Balasan</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="app.js?v=2.3"></script>
   </body>
 </html>

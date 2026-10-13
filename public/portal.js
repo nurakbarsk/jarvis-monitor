@@ -404,6 +404,19 @@
              </div>`
           : "";
 
+        const devReplyHtml = ticket.dev_reply
+          ? `<div class="dev-reply-box">
+              <div class="dev-reply-head">
+                <span class="dev-reply-badge">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <span>Tanggapan Tim IT Developer</span>
+                </span>
+                ${ticket.replied_at ? `<time class="dev-reply-time">${escapeHtml(relativeTime(ticket.replied_at))}</time>` : ""}
+              </div>
+              <p class="dev-reply-body">${escapeHtml(ticket.dev_reply)}</p>
+            </div>`
+          : "";
+
         return `<article class="ticket-row ${isResolved ? "is-resolved" : ""}">
           <div class="icon-box ${isResolved ? "icon-mint" : isIdea ? "icon-sand" : "icon-peach"}">${icon(isResolved ? "check" : isIdea ? "doc" : "bug")}</div>
           <div class="ticket-copy">
@@ -416,6 +429,7 @@
             </div>
             <p>${escapeHtml(ticket.issue_description)}</p>
             ${imageHtml}
+            ${devReplyHtml}
           </div>
           <div class="remaining">
             <span>Dilaporkan</span>

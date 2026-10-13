@@ -323,6 +323,18 @@
     timetableStatus: $("timetable_status"),
     timetableFeedback: $("timetable-feedback"),
     btnSubmitTimetable: $("btn-submit-timetable"),
+
+    // Modal Balasan Developer
+    modalReply: $("modal-reply"),
+    modalReplyClose: $("modal-reply-close"),
+    modalReplyCancel: $("modal-reply-cancel"),
+    replyForm: $("reply-form"),
+    replyTicketId: $("reply-ticket-id"),
+    replyTicketPreview: $("reply-ticket-preview"),
+    replyContent: $("reply-content"),
+    replyStatus: $("reply-status"),
+    replyFeedback: $("reply-feedback"),
+    btnSubmitReply: $("btn-submit-reply"),
   };
 
   /* ----------------------------- Utils ----------------------------- */
@@ -775,6 +787,19 @@
              </div>`
           : "";
 
+        const devReplyHtml = ticket.dev_reply
+          ? `<div class="dev-reply-box dev-reply-admin">
+              <div class="dev-reply-head">
+                <span class="dev-reply-badge">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <span>Balasan Developer</span>
+                </span>
+                ${ticket.replied_at ? `<time class="dev-reply-time">${escapeHtml(relativeTime(ticket.replied_at))}</time>` : ""}
+              </div>
+              <p class="dev-reply-body">${escapeHtml(ticket.dev_reply)}</p>
+            </div>`
+          : "";
+
         return `<article class="ticket-row ${isResolved ? "is-resolved" : ""}">
           <div class="icon-box ${isResolved ? "icon-mint" : isIdea ? "icon-sand" : "icon-peach"}">${icon(isResolved ? "check" : isIdea ? "doc" : "bug")}</div>
           <div class="ticket-copy">
@@ -787,12 +812,17 @@
             </div>
             <p>${escapeHtml(ticket.issue_description)}</p>
             ${imageHtml}
+            ${devReplyHtml}
           </div>
           <div class="remaining">
             <span>Dilaporkan</span>
             <strong>${escapeHtml(relativeTime(ticket.created_at))}</strong>
           </div>
           <div class="ticket-actions">
+            <button class="btn btn-sm btn-reply-ticket" data-ticket-id="${ticket.id}" type="button" title="Beri tanggapan / balasan ke pelapor">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>${ticket.dev_reply ? "Edit Balasan" : "Balas"}</span>
+            </button>
             ${
               isResolved
                 ? '<span class="status-done-tag">✓ Tuntas</span>'
@@ -809,6 +839,15 @@
         </article>`;
       })
       .join("");
+
+    // Listeners for reply ticket
+    els.tickets.querySelectorAll(".btn-reply-ticket").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = Number(btn.getAttribute("data-ticket-id"));
+        const ticket = state.tickets.find((t) => t.id === id);
+        if (ticket) openReplyModal(ticket);
+      });
+    });
 
     // Listeners for resolve ticket
     els.tickets.querySelectorAll(".btn-resolve").forEach((btn) => {
@@ -1255,6 +1294,84 @@
     });
   }
 
+  /* ----------------------------- Modal Reply ----------------------------- */
+
+  function openReplyModal(ticket) {
+    if (!els.modalReply) return;
+    els.replyTicketId.value = String(ticket.id);
+    els.replyContent.value = ticket.dev_reply || "";
+    if (els.replyStatus) {
+      els.replyStatus.value = ticket.status === "Open" ? "In Progress" : "";
+    }
+    setFeedback(els.replyFeedback, "");
+
+    if (els.replyTicketPreview) {
+      els.replyTicketPreview.innerHTML = `
+        <div class="ticket-preview-meta">#${ticket.id} · ${escapeHtml(ticket.reporter_name)} (${escapeHtml(ticket.category || "Bug")}) — [${escapeHtml(ticket.status)}]</div>
+        <div>${escapeHtml(ticket.issue_description)}</div>
+      `;
+    }
+
+    els.modalReply.hidden = false;
+    setTimeout(() => {
+      if (els.replyContent) els.replyContent.focus();
+    }, 60);
+  }
+
+  function closeReplyModal() {
+    if (els.modalReply) els.modalReply.hidden = true;
+  }
+
+  if (els.modalReplyClose) els.modalReplyClose.addEventListener("click", closeReplyModal);
+  if (els.modalReplyCancel) els.modalReplyCancel.addEventListener("click", closeReplyModal);
+  if (els.modalReply) {
+    els.modalReply.addEventListener("click", (e) => {
+      if (e.target === els.modalReply) closeReplyModal();
+    });
+  }
+
+  if (els.replyForm) {
+    els.replyForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = els.replyTicketId.value;
+      const devReply = els.replyContent.value.trim();
+      const status = els.replyStatus ? els.replyStatus.value : "";
+
+      if (!devReply) {
+        setFeedback(els.replyFeedback, "Pesan balasan tidak boleh kosong.", "err");
+        return;
+      }
+
+      els.btnSubmitReply.disabled = true;
+      els.btnSubmitReply.textContent = "Mengirim…";
+      setFeedback(els.replyFeedback, "");
+
+      try {
+        const res = await fetch("api.php?action=reply_ticket", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: Number(id),
+            dev_reply: devReply,
+            status: status || undefined,
+          }),
+        });
+
+        const payload = await res.json();
+        if (!res.ok) throw new Error(payload.error || "Gagal menyimpan balasan tiket");
+
+        showToast("Balasan developer berhasil dikirim!", "success");
+        closeReplyModal();
+        await loadData({ silent: true });
+      } catch (err) {
+        setFeedback(els.replyFeedback, err.message, "err");
+      } finally {
+        els.btnSubmitReply.disabled = false;
+        els.btnSubmitReply.textContent = "Kirim Balasan";
+      }
+    });
+  }
+
   /* ----------------------------- Events ----------------------------- */
 
   els.switcher.addEventListener("change", (event) => {
@@ -1386,6 +1503,7 @@
       closeProjectModal();
       closeFeatureModal();
       closeTimetableModal();
+      closeReplyModal();
     }
   });
 

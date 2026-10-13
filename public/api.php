@@ -225,7 +225,7 @@ try {
 
             // 2. Tickets (urutkan Open -> In Progress -> Done/Resolved, lalu terbaru)
             $stmtTickets = $db->prepare("
-                SELECT id, project_name, reporter_name, category, issue_description, image_url, status, created_at
+                SELECT id, project_name, reporter_name, category, issue_description, dev_reply, replied_at, image_url, status, created_at
                 FROM tickets
                 WHERE project_name = ?
                 ORDER BY 
@@ -302,7 +302,7 @@ try {
                 $stmtUp = $db->prepare('UPDATE tickets SET status = ? WHERE id = ?');
                 $stmtUp->execute([$status, $id]);
 
-                $stmtGet = $db->prepare('SELECT id, project_name, reporter_name, category, issue_description, image_url, status, created_at FROM tickets WHERE id = ?');
+                $stmtGet = $db->prepare('SELECT id, project_name, reporter_name, category, issue_description, dev_reply, replied_at, image_url, status, created_at FROM tickets WHERE id = ?');
                 $stmtGet->execute([$id]);
                 $ticket = $stmtGet->fetch();
 
@@ -314,6 +314,53 @@ try {
                     'ok'      => true,
                     'message' => "Status tiket diubah menjadi {$status}.",
                     'ticket'  => $ticket
+                ]);
+            }
+
+            // SUB-ACTION: REPLY TIKET OLEH DEVELOPER
+            if (($method === 'POST' || $method === 'PATCH') && (($input['sub'] ?? '') === 'reply')) {
+                requireAdminAuth();
+                $id = (int)($input['id'] ?? 0);
+                $reply = trim((string)($input['dev_reply'] ?? ''));
+                $newStatus = trim((string)($input['status'] ?? ''));
+
+                if ($id <= 0) {
+                    jsonResponse(['error' => 'ID tiket tidak valid.'], 400);
+                }
+
+                $stmtFind = $db->prepare('SELECT * FROM tickets WHERE id = ?');
+                $stmtFind->execute([$id]);
+                $ticket = $stmtFind->fetch();
+                if (!$ticket) {
+                    jsonResponse(['error' => 'Tiket tidak ditemukan.'], 404);
+                }
+
+                $validStatuses = ['Open', 'In Progress', 'Resolved', 'Done'];
+                $hasStatusChange = in_array($newStatus, $validStatuses, true);
+
+                if ($hasStatusChange) {
+                    $stmtUp = $db->prepare('UPDATE tickets SET dev_reply = ?, replied_at = NOW(), status = ? WHERE id = ?');
+                    $stmtUp->execute([$reply, $newStatus, $id]);
+                } else {
+                    $stmtUp = $db->prepare('UPDATE tickets SET dev_reply = ?, replied_at = NOW() WHERE id = ?');
+                    $stmtUp->execute([$reply, $id]);
+                }
+
+                if (!empty($reply)) {
+                    $statusInfo = $hasStatusChange ? " (Status: <b>{$newStatus}</b>)" : "";
+                    $telegramMsg = "💬 <b>Balasan Developer untuk Tiket #{$id}</b>{$statusInfo}\n\n";
+                    $telegramMsg .= "📁 Proyek: <b>" . htmlspecialchars($ticket['project_name']) . "</b>\n";
+                    $telegramMsg .= "👤 Pelapor: " . htmlspecialchars($ticket['reporter_name']) . "\n";
+                    $telegramMsg .= "📝 <b>Kendala:</b> " . htmlspecialchars(mb_substr($ticket['issue_description'], 0, 150)) . "\n\n";
+                    $telegramMsg .= "💬 <b>Balasan:</b>\n" . htmlspecialchars($reply);
+                    @sendTelegramNotification($telegramMsg);
+                }
+
+                $stmtFind->execute([$id]);
+                jsonResponse([
+                    'ok'      => true,
+                    'message' => 'Balasan developer berhasil disimpan.',
+                    'ticket'  => $stmtFind->fetch()
                 ]);
             }
 
@@ -804,7 +851,7 @@ try {
             $stmtUp = $db->prepare('UPDATE tickets SET status = ? WHERE id = ?');
             $stmtUp->execute([$status, $id]);
 
-            $stmtGet = $db->prepare('SELECT id, project_name, reporter_name, category, issue_description, image_url, status, created_at FROM tickets WHERE id = ?');
+            $stmtGet = $db->prepare('SELECT id, project_name, reporter_name, category, issue_description, dev_reply, replied_at, image_url, status, created_at FROM tickets WHERE id = ?');
             $stmtGet->execute([$id]);
             $ticket = $stmtGet->fetch();
 
@@ -816,6 +863,55 @@ try {
                 'ok'      => true,
                 'message' => "Status tiket #{$id} diubah menjadi {$status}.",
                 'ticket'  => $ticket
+            ]);
+            break;
+
+        /* -----------------------------------------------------------------
+         * 9b. REPLY TICKET (DEDICATED ACTION)
+         * ----------------------------------------------------------------- */
+        case 'reply_ticket':
+            requireAdminAuth();
+            $id = (int)($input['id'] ?? 0);
+            $reply = trim((string)($input['dev_reply'] ?? ''));
+            $newStatus = trim((string)($input['status'] ?? ''));
+
+            if ($id <= 0) {
+                jsonResponse(['error' => 'ID tiket tidak valid.'], 400);
+            }
+
+            $stmtFind = $db->prepare('SELECT * FROM tickets WHERE id = ?');
+            $stmtFind->execute([$id]);
+            $ticket = $stmtFind->fetch();
+            if (!$ticket) {
+                jsonResponse(['error' => 'Tiket tidak ditemukan.'], 404);
+            }
+
+            $validStatuses = ['Open', 'In Progress', 'Resolved', 'Done'];
+            $hasStatusChange = in_array($newStatus, $validStatuses, true);
+
+            if ($hasStatusChange) {
+                $stmtUp = $db->prepare('UPDATE tickets SET dev_reply = ?, replied_at = NOW(), status = ? WHERE id = ?');
+                $stmtUp->execute([$reply, $newStatus, $id]);
+            } else {
+                $stmtUp = $db->prepare('UPDATE tickets SET dev_reply = ?, replied_at = NOW() WHERE id = ?');
+                $stmtUp->execute([$reply, $id]);
+            }
+
+            if (!empty($reply)) {
+                $statusInfo = $hasStatusChange ? " (Status: <b>{$newStatus}</b>)" : "";
+                $telegramMsg = "💬 <b>Balasan Developer untuk Tiket #{$id}</b>{$statusInfo}\n\n";
+                $telegramMsg .= "📁 Proyek: <b>" . htmlspecialchars($ticket['project_name']) . "</b>\n";
+                $telegramMsg .= "👤 Pelapor: " . htmlspecialchars($ticket['reporter_name']) . "\n";
+                $telegramMsg .= "📝 <b>Kendala:</b> " . htmlspecialchars(mb_substr($ticket['issue_description'], 0, 150)) . "\n\n";
+                $telegramMsg .= "💬 <b>Balasan:</b>\n" . htmlspecialchars($reply);
+                @sendTelegramNotification($telegramMsg);
+            }
+
+            $stmtFind->execute([$id]);
+            jsonResponse([
+                'ok'      => true,
+                'message' => 'Balasan developer berhasil disimpan.',
+                'ticket'  => $stmtFind->fetch()
             ]);
             break;
 

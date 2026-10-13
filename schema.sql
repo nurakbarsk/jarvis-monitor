@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS `tickets` (
   `reporter_name` VARCHAR(191) NOT NULL,
   `category` VARCHAR(50) NOT NULL DEFAULT 'Bug',
   `issue_description` TEXT NOT NULL,
+  `dev_reply` TEXT NULL,
+  `replied_at` DATETIME NULL,
   `image_url` VARCHAR(255) NULL,
   `status` VARCHAR(50) NOT NULL DEFAULT 'Open',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
