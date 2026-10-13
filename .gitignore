@@ -1,0 +1,10 @@
+node_modules/
+monitor.db
+.env
+*.log
+.impeccable/
+monitor.db-wal
+monitor.db-shm
+*.zip
+public/uploads/*
+!public/uploads/.gitkeep
