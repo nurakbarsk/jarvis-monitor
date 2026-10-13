@@ -49,14 +49,11 @@
     submit: $("submit-ticket"),
     categoryBug: $("label-cat-bug"),
     categoryIde: $("label-cat-ide"),
-    issueDescLabel: $("label-issue-desc"),
-    ticketImage: $("ticket_image"),
-    fileCta: $("file-cta"),
-    filePreviewCard: $("file-preview-card"),
-    filePreviewImg: $("file-preview-img"),
-    filePreviewName: $("file-preview-name"),
-    filePreviewSize: $("file-preview-size"),
-    btnRemoveFile: $("btn-remove-file"),
+    ticketImage: $("ticket-image") || $("ticket_image"),
+    btnTriggerAttachment: $("btn-trigger-attachment"),
+    attachmentHint: $("attachment-hint"),
+    attachmentFilename: $("attachment-filename"),
+    btnClearAttachment: $("btn-clear-attachment"),
     calendarLabel: $("calendar-label"),
     calendarGrid: $("calendar-grid"),
     menuBtn: $("menu-btn"),
@@ -687,37 +684,49 @@
     });
   });
 
+  function resetAttachment() {
+    if (els.ticketImage) els.ticketImage.value = "";
+    if (els.attachmentFilename) {
+      els.attachmentFilename.textContent = "";
+      els.attachmentFilename.style.display = "none";
+    }
+    if (els.attachmentHint) els.attachmentHint.style.display = "inline-block";
+    if (els.btnClearAttachment) els.btnClearAttachment.style.display = "none";
+  }
+
+  if (els.btnTriggerAttachment && els.ticketImage) {
+    els.btnTriggerAttachment.addEventListener("click", () => {
+      els.ticketImage.click();
+    });
+  }
+
   if (els.ticketImage) {
     els.ticketImage.addEventListener("change", (e) => {
       const file = e.target.files?.[0];
-      if (!file) return;
-
-      if (file.size > 5 * 1024 * 1024) {
-        setFeedback(els.feedback, "Ukuran gambar melebihi batas maksimal 5MB.", "err");
-        els.ticketImage.value = "";
+      if (!file) {
+        resetAttachment();
         return;
       }
 
-      if (els.filePreviewName) els.filePreviewName.textContent = file.name;
-      if (els.filePreviewSize) {
-        const sizeKb = Math.round(file.size / 1024);
-        els.filePreviewSize.textContent = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
+      if (file.size > 5 * 1024 * 1024) {
+        setFeedback(els.feedback, "Ukuran gambar melebihi batas maksimal 5MB.", "err");
+        resetAttachment();
+        return;
       }
-      if (els.filePreviewCard) els.filePreviewCard.hidden = false;
-      if (els.fileCta) els.fileCta.hidden = true;
+
+      if (els.attachmentFilename) {
+        els.attachmentFilename.textContent = `${file.name} terpilih`;
+        els.attachmentFilename.style.display = "inline-block";
+      }
+      if (els.attachmentHint) els.attachmentHint.style.display = "none";
+      if (els.btnClearAttachment) els.btnClearAttachment.style.display = "inline-flex";
     });
   }
 
-  if (els.btnRemoveFile) {
-    els.btnRemoveFile.addEventListener("click", () => {
-      resetImagePreview();
+  if (els.btnClearAttachment) {
+    els.btnClearAttachment.addEventListener("click", () => {
+      resetAttachment();
     });
-  }
-
-  function resetImagePreview() {
-    if (els.ticketImage) els.ticketImage.value = "";
-    if (els.filePreviewCard) els.filePreviewCard.hidden = true;
-    if (els.fileCta) els.fileCta.hidden = false;
   }
 
   // Submit tiket kendala / ide fitur
@@ -767,7 +776,7 @@
       if (!res.ok) throw new Error(payload.error || "Gagal mengirim tiket");
 
       els.form.reset();
-      resetImagePreview();
+      resetAttachment();
       updateCategory("Bug");
       els.counter.textContent = `0 / ${DESC_MAX}`;
       const notified = payload.telegram?.sent ? " Alert telah terkirim ke Telegram tim IT." : "";
@@ -857,12 +866,11 @@
   const editIdInput = $("edit_ticket_id");
   const editReporterInput = $("edit_reporter_name");
   const editDescInput = $("edit_issue_description");
-  const editImageInput = $("edit_ticket_image");
-  const editFileCta = $("edit-file-cta");
-  const editFilePreviewCard = $("edit-file-preview-card");
-  const editFilePreviewImg = $("edit-file-preview-img");
-  const editFilePreviewName = $("edit-file-preview-name");
-  const editFilePreviewSize = $("edit-file-preview-size");
+  const editImageInput = $("edit-ticket-image") || $("edit_ticket_image");
+  const btnEditTriggerAttachment = $("btn-edit-trigger-attachment");
+  const editAttachmentHint = $("edit-attachment-hint");
+  const editAttachmentFilename = $("edit-attachment-filename");
+  const btnClearEditAttachment = $("btn-clear-edit-attachment");
   const editExistingBox = $("edit-existing-image-box");
   const editExistingLink = $("edit-existing-image-link");
   const editRemoveFlag = $("edit_remove_image");
@@ -887,34 +895,48 @@
 
   function resetEditFile() {
     if (editImageInput) editImageInput.value = "";
-    if (editFilePreviewCard) editFilePreviewCard.hidden = true;
-    if (editFileCta) editFileCta.hidden = false;
+    if (editAttachmentFilename) {
+      editAttachmentFilename.textContent = "";
+      editAttachmentFilename.style.display = "none";
+    }
+    if (editAttachmentHint) editAttachmentHint.style.display = "inline-block";
+    if (btnClearEditAttachment) btnClearEditAttachment.style.display = "none";
+  }
+
+  if (btnEditTriggerAttachment && editImageInput) {
+    btnEditTriggerAttachment.addEventListener("click", () => {
+      editImageInput.click();
+    });
   }
 
   if (editImageInput) {
     editImageInput.addEventListener("change", (e) => {
       const file = e.target.files?.[0];
-      if (!file) return;
-
-      if (file.size > 5 * 1024 * 1024) {
-        setFeedback(editFeedback, "Ukuran gambar melebihi batas 5MB.", "err");
-        editImageInput.value = "";
+      if (!file) {
+        resetEditFile();
         return;
       }
 
-      if (editFilePreviewName) editFilePreviewName.textContent = file.name;
-      if (editFilePreviewSize) {
-        const sizeKb = Math.round(file.size / 1024);
-        editFilePreviewSize.textContent = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
+      if (file.size > 5 * 1024 * 1024) {
+        setFeedback(editFeedback, "Ukuran gambar melebihi batas 5MB.", "err");
+        resetEditFile();
+        return;
       }
-      if (editFilePreviewCard) editFilePreviewCard.hidden = false;
-      if (editFileCta) editFileCta.hidden = true;
+
+      if (editAttachmentFilename) {
+        editAttachmentFilename.textContent = `${file.name} terpilih`;
+        editAttachmentFilename.style.display = "inline-block";
+      }
+      if (editAttachmentHint) editAttachmentHint.style.display = "none";
+      if (btnClearEditAttachment) btnClearEditAttachment.style.display = "inline-flex";
     });
   }
 
-  $("btn-remove-edit-file")?.addEventListener("click", () => {
-    resetEditFile();
-  });
+  if (btnClearEditAttachment) {
+    btnClearEditAttachment.addEventListener("click", () => {
+      resetEditFile();
+    });
+  }
 
   $("btn-remove-existing-image")?.addEventListener("click", () => {
     if (editRemoveFlag) editRemoveFlag.value = "true";

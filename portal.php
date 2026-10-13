@@ -241,37 +241,21 @@
                   <textarea id="issue_description" name="issue_description" maxlength="2000" placeholder="Jelaskan kendala: tombol apa yang error, di halaman mana, atau data apa yang tidak sesuai..." required></textarea>
                   <span class="field-hint" id="desc-counter">0 / 2000</span>
                 </div>
-                <div class="field">
-                  <label for="ticket_image">Lampirkan Gambar / Bukti Screenshot (Opsional)</label>
-                  <div class="file-dropzone" id="file-dropzone">
-                    <input type="file" id="ticket_image" name="image" accept="image/png, image/jpeg, image/jpg, image/webp" class="file-input-hidden" />
-                    <label for="ticket_image" class="file-dropzone-cta" id="file-cta">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                        <polyline points="21 15 16 10 5 21"/>
-                      </svg>
-                      <span class="file-cta-text">Pilih atau Seret Foto / Screenshot (Maks 5MB)</span>
-                      <span class="file-cta-sub">Format didukung: PNG, JPG, JPEG, WEBP</span>
-                    </label>
-                    <div class="file-preview-card" id="file-preview-card" hidden>
-                      <svg class="file-preview-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                      </svg>
-                      <div class="file-preview-info">
-                        <span class="file-preview-name" id="file-preview-name">screenshot.png</span>
-                        <span class="file-preview-size" id="file-preview-size">0 KB</span>
-                      </div>
-                      <button type="button" class="btn-remove-file" id="btn-remove-file" title="Hapus lampiran gambar">✕ Hapus</button>
-                    </div>
+                <div class="field field-attachment">
+                  <label for="ticket-image">Lampiran</label>
+                  <div class="attachment-input-row">
+                    <button type="button" class="btn-add-attachment" id="btn-trigger-attachment">
+                      + Tambah Lampiran
+                    </button>
+                    <input type="file" id="ticket-image" name="image" accept=".jpg,.jpeg,.png" style="display: none;" />
+                    <span class="attachment-hint" id="attachment-hint">(jpeg, jpg, png)</span>
+                    <span class="attachment-filename" id="attachment-filename" style="display: none;"></span>
+                    <button type="button" class="btn-clear-attachment" id="btn-clear-attachment" title="Batalkan lampiran" style="display: none;">✕</button>
                   </div>
                 </div>
                 <div class="form-foot">
                   <p class="feedback" id="form-feedback" role="status" aria-live="polite"></p>
-                  <button class="btn btn-primary" id="submit-ticket" type="submit">Kirim Laporan Kendala</button>
+                  <button class="btn btn-primary btn-submit-ticket" id="submit-ticket" type="submit">Kirim Laporan Kendala</button>
                 </div>
               </form>
             </section>
@@ -350,35 +334,19 @@
             <label for="edit_issue_description" id="label-edit-issue-desc">Deskripsi</label>
             <textarea id="edit_issue_description" name="issue_description" maxlength="2000" rows="4" required></textarea>
           </div>
-          <div class="field">
-            <label for="edit_ticket_image">Ganti / Lampirkan Screenshot (Opsional)</label>
-            <div class="file-dropzone" id="edit-file-dropzone">
-              <input type="file" id="edit_ticket_image" name="image" accept="image/png, image/jpeg, image/jpg, image/webp" class="file-input-hidden" />
-              <label for="edit_ticket_image" class="file-dropzone-cta" id="edit-file-cta">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21 15 16 10 5 21"/>
-                </svg>
-                <span class="file-cta-text">Pilih Screenshot Baru (Maks 5MB)</span>
-                <span class="file-cta-sub" id="edit-current-image-label">Pilih jika ingin mengganti screenshot</span>
-              </label>
-              <div class="file-preview-card" id="edit-file-preview-card" hidden>
-                <svg class="file-preview-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-                <div class="file-preview-info">
-                  <span class="file-preview-name" id="edit-file-preview-name">screenshot.png</span>
-                  <span class="file-preview-size" id="edit-file-preview-size">0 KB</span>
-                </div>
-                <button type="button" class="btn-remove-file" id="btn-remove-edit-file" title="Batalkan berkas baru">✕ Batal</button>
-              </div>
+          <div class="field field-attachment">
+            <label for="edit-ticket-image">Lampiran</label>
+            <div class="attachment-input-row">
+              <button type="button" class="btn-add-attachment" id="btn-edit-trigger-attachment">
+                + Tambah Lampiran
+              </button>
+              <input type="file" id="edit-ticket-image" name="image" accept=".jpg,.jpeg,.png" style="display: none;" />
+              <span class="attachment-hint" id="edit-attachment-hint">(jpeg, jpg, png)</span>
+              <span class="attachment-filename" id="edit-attachment-filename" style="display: none;"></span>
+              <button type="button" class="btn-clear-attachment" id="btn-clear-edit-attachment" title="Batalkan lampiran" style="display: none;">✕</button>
             </div>
             <div id="edit-existing-image-box" class="existing-image-box" hidden>
-              <span>Screenshot saat ini tersimpan:</span>
+              <span>Screenshot tersimpan:</span>
               <a href="#" id="edit-existing-image-link" target="_blank" rel="noopener">Lihat</a>
               <button type="button" class="btn-text-danger" id="btn-remove-existing-image">Hapus Lampiran Ini</button>
             </div>

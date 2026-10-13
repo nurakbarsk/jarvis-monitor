@@ -923,118 +923,106 @@ button {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* ----------------------------- File Dropzone & Preview ----------------------------- */
+/* ----------------------------- Minimalist Attachment Input ----------------------------- */
 
-.file-dropzone {
-  position: relative;
-  border: 1.5px dashed var(--color-border-strong);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-subtle);
-  transition: border-color 150ms ease, background 150ms ease;
-  overflow: hidden;
+.field-attachment {
+  margin-top: 4px;
 }
 
-.file-dropzone:hover {
-  border-color: var(--color-primary-hover, #c6e74a);
-  background: #ffffff;
-}
-
-.file-input-hidden {
-  position: absolute;
-  width: 0.1px;
-  height: 0.1px;
-  opacity: 0;
-  overflow: hidden;
-  z-index: -1;
-}
-
-.file-dropzone-cta {
+.attachment-input-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 4px 0 2px 0;
+}
+
+.btn-add-attachment {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 16px 14px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.file-dropzone-cta svg {
-  width: 26px;
-  height: 26px;
-  color: var(--color-text-muted);
-  margin-bottom: 2px;
-}
-
-.file-cta-text {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.file-cta-sub {
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
-.file-preview-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  background: var(--color-bg-surface, #ffffff);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-}
-
-.file-preview-icon {
-  width: 32px;
-  height: 32px;
-  padding: 6px;
-  border-radius: var(--radius-xs);
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text-primary, #334155);
   background: var(--color-bg-subtle, #f1f5f9);
-  color: var(--color-primary, #2563eb);
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
-
-.file-preview-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.file-preview-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.file-preview-size {
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
-.btn-remove-file {
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-danger);
-  background: rgba(229, 72, 77, 0.08);
-  border: 1px solid rgba(229, 72, 77, 0.2);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 9999px;
   cursor: pointer;
   transition: all 150ms ease;
-  flex-shrink: 0;
+  line-height: 1.4;
+  user-select: none;
 }
 
-.btn-remove-file:hover {
-  background: rgba(229, 72, 77, 0.16);
+.btn-add-attachment:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.attachment-hint {
+  font-size: 12px;
+  color: var(--color-text-muted, #64748b);
+  display: inline-block;
+}
+
+.attachment-filename {
+  font-size: 12px;
+  font-weight: 500;
+  color: #15803d;
+  background: #f0fdf4;
+  padding: 4px 10px;
+  border-radius: var(--radius-xs, 4px);
+  border: 1px solid #bbf7d0;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-clear-attachment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+  color: var(--color-text-muted, #94a3b8);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  transition: all 150ms ease;
+}
+
+.btn-clear-attachment:hover {
+  color: var(--color-danger, #ef4444);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Tombol submit hijau untuk laporan kendala */
+.btn-submit-ticket,
+#submit-ticket {
+  background: #16a34a !important;
+  color: #ffffff !important;
+  border: 1px solid #15803d !important;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.25);
+  font-weight: 600;
+  transition: background 150ms ease, transform 100ms ease;
+}
+
+.btn-submit-ticket:hover:not(:disabled),
+#submit-ticket:hover:not(:disabled) {
+  background: #15803d !important;
+  color: #ffffff !important;
+}
+
+.btn-submit-ticket:active:not(:disabled),
+#submit-ticket:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .chevron {
