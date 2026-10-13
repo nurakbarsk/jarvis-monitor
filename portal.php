@@ -158,29 +158,23 @@
                 <span class="chip" id="timetable-summary-chip">0 Task Terjadwal</span>
               </div>
 
-              <!-- Progress Bar Akumulasi Persen Selesai -->
-              <div class="timetable-progress-card">
-                <div class="timetable-progress-header">
-                  <div class="timetable-progress-title">
-                    <div class="icon-box icon-sm icon-lime" style="background: var(--color-primary);">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </div>
-                    <div>
-                      <strong>Progres Akumulasi Roadmap</strong>
-                      <span class="timetable-progress-sub" id="timetable-progress-meta">0 dari 0 task telah tuntas dikerjakan</span>
-                    </div>
-                  </div>
-                  <strong class="timetable-progress-percent" id="timetable-percent-label">0% Selesai</strong>
-                </div>
-                <div class="timetable-progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                  <div class="timetable-progress-fill" id="timetable-progress-fill" style="width: 0%"></div>
-                </div>
-              </div>
-
               <!-- Kartu Time Table Per Bulan -->
               <div class="timetable-monthly-list" id="client-timetable-grid"></div>
+              <div class="pagination-bar" id="timetable-pagination" hidden>
+                <button class="pagination-btn" id="timetable-prev" type="button" aria-label="Halaman sebelumnya">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                  <span>Prev</span>
+                </button>
+                <span class="pagination-info" id="timetable-page-info">Halaman 1 dari 1</span>
+                <button class="pagination-btn" id="timetable-next" type="button" aria-label="Halaman berikutnya">
+                  <span>Next</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </div>
             </section>
 
             <!-- Bagian 3: Riwayat Update Terakhir (Changelog GitHub) -->

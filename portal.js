@@ -2,6 +2,7 @@
   const STORAGE_KEY = "jarvis:selected_project";
   const DESC_MAX = 2000;
   const ITEMS_PER_PAGE = 5;
+  const TIMETABLE_PER_PAGE = 5;
 
   const state = {
     projects: [],
@@ -11,6 +12,7 @@
     tickets: [],
     features: [],
     timetable: [],
+    timetableCurrentPage: 1,
     filter: "all",
     calendar: new Date(),
     requestId: 0,
@@ -24,9 +26,10 @@
     featureList: $("client-feature-list"),
     timetableGrid: $("client-timetable-grid"),
     timetableSummaryChip: $("timetable-summary-chip"),
-    timetablePercentLabel: $("timetable-percent-label"),
-    timetableProgressFill: $("timetable-progress-fill"),
-    timetableProgressMeta: $("timetable-progress-meta"),
+    timetablePagination: $("timetable-pagination"),
+    timetablePrev: $("timetable-prev"),
+    timetableNext: $("timetable-next"),
+    timetablePageInfo: $("timetable-page-info"),
     changelog: $("changelog-list"),
     changelogPagination: $("changelog-pagination"),
     changelogPrev: $("changelog-prev"),
@@ -186,25 +189,13 @@
     if (!els.timetableGrid) return;
     if (!state.currentProject) {
       els.timetableGrid.innerHTML = '<div class="empty">Pilih sistem yayasan terlebih dahulu.</div>';
+      if (els.timetablePagination) els.timetablePagination.hidden = true;
       return;
     }
 
     const total = state.timetable.length;
-    const doneCount = state.timetable.filter((t) => t.status === "Done").length;
-    const inProgressCount = state.timetable.filter((t) => t.status === "In Progress").length;
-    const pct = total ? Math.round((doneCount / total) * 100) : 0;
-
     if (els.timetableSummaryChip) {
       els.timetableSummaryChip.textContent = `${total} Task Terjadwal`;
-    }
-    if (els.timetablePercentLabel) {
-      els.timetablePercentLabel.textContent = `${pct}% Selesai`;
-    }
-    if (els.timetableProgressFill) {
-      els.timetableProgressFill.style.width = `${pct}%`;
-    }
-    if (els.timetableProgressMeta) {
-      els.timetableProgressMeta.textContent = `${doneCount} dari ${total} task selesai (${inProgressCount} sedang digarap)`;
     }
 
     if (!total) {
@@ -214,24 +205,30 @@
           <h3>Belum ada agenda time table bulanan</h3>
           <p>Tim pengembang belum menambahkan roadmap bulanan untuk sistem ini.</p>
         </div>`;
+      if (els.timetablePagination) els.timetablePagination.hidden = true;
       return;
     }
 
-    // Kelompokkan task berdasarkan Bulan (Group by target_month)
+    // Logika Pagination Timetable Portal (5 task per halaman)
+    const totalPages = Math.max(1, Math.ceil(total / TIMETABLE_PER_PAGE));
+    if (state.timetableCurrentPage > totalPages) state.timetableCurrentPage = totalPages;
+    if (state.timetableCurrentPage < 1) state.timetableCurrentPage = 1;
+
+    const startIdx = (state.timetableCurrentPage - 1) * TIMETABLE_PER_PAGE;
+    const pagedTasks = state.timetable.slice(startIdx, startIdx + TIMETABLE_PER_PAGE);
+
+    // Kelompokkan task halaman ini berdasarkan Bulan
     const months = [];
-    state.timetable.forEach((t) => {
+    pagedTasks.forEach((t) => {
       const m = (t.target_month || t.target_week || "Bulan Ini").trim();
       if (!months.includes(m)) months.push(m);
     });
 
     els.timetableGrid.innerHTML = months
       .map((m) => {
-        const monthTasks = state.timetable.filter(
+        const monthTasks = pagedTasks.filter(
           (t) => (t.target_month || t.target_week || "Bulan Ini").trim() === m
         );
-        const mTotal = monthTasks.length;
-        const mDone = monthTasks.filter((t) => t.status === "Done").length;
-        const mPct = mTotal ? Math.round((mDone / mTotal) * 100) : 0;
 
         const taskRows = monthTasks
           .map((t) => {
@@ -269,14 +266,7 @@
                 <div class="icon-box icon-sm icon-lavender">${icon("calendar")}</div>
                 <div>
                   <h3>Plan ${escapeHtml(m)}</h3>
-                  <span class="timetable-month-sub">${mDone} dari ${mTotal} task selesai • ${mPct}%</span>
                 </div>
-              </div>
-              <div class="timetable-month-progress-wrap">
-                <div class="timetable-mini-track">
-                  <div class="timetable-mini-fill" style="width: ${mPct}%"></div>
-                </div>
-                <strong class="timetable-mini-pct">${mPct}%</strong>
               </div>
             </div>
             <div class="timetable-month-tasks">
@@ -286,6 +276,20 @@
         `;
       })
       .join("");
+
+    // Update Navigasi Pagination Timetable
+    if (els.timetablePagination) {
+      els.timetablePagination.hidden = false;
+      if (els.timetablePrev) {
+        els.timetablePrev.disabled = state.timetableCurrentPage <= 1;
+      }
+      if (els.timetableNext) {
+        els.timetableNext.disabled = state.timetableCurrentPage >= totalPages;
+      }
+      if (els.timetablePageInfo) {
+        els.timetablePageInfo.textContent = `Halaman ${state.timetableCurrentPage} dari ${totalPages}`;
+      }
+    }
   }
 
   function filteredLogs() {
@@ -571,6 +575,7 @@
     if (!project) return;
     state.currentProject = project;
     state.currentPage = 1;
+    state.timetableCurrentPage = 1;
     localStorage.setItem(STORAGE_KEY, project.name);
     els.switcher.value = project.name;
 
@@ -619,6 +624,25 @@
       if (state.currentPage < totalPages) {
         state.currentPage++;
         renderChangelog();
+      }
+    });
+  }
+
+  if (els.timetablePrev) {
+    els.timetablePrev.addEventListener("click", () => {
+      if (state.timetableCurrentPage > 1) {
+        state.timetableCurrentPage--;
+        renderTimetable();
+      }
+    });
+  }
+
+  if (els.timetableNext) {
+    els.timetableNext.addEventListener("click", () => {
+      const totalPages = Math.ceil(state.timetable.length / TIMETABLE_PER_PAGE);
+      if (state.timetableCurrentPage < totalPages) {
+        state.timetableCurrentPage++;
+        renderTimetable();
       }
     });
   }

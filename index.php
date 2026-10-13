@@ -339,6 +339,21 @@
                 </button>
               </div>
               <div class="timetable-admin-list" id="timetable-admin-list"></div>
+              <div class="pagination-bar" id="timetable-pagination" hidden>
+                <button class="pagination-btn" id="timetable-prev" type="button" aria-label="Halaman sebelumnya">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                  <span>Prev</span>
+                </button>
+                <span class="pagination-info" id="timetable-page-info">Halaman 1 dari 1</span>
+                <button class="pagination-btn" id="timetable-next" type="button" aria-label="Halaman berikutnya">
+                  <span>Next</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+              </div>
             </section>
 
             <!-- Bagian Tiket Masuk Dari Klien -->

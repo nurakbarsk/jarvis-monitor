@@ -1,6 +1,7 @@
 (() => {
   const STORAGE_KEY = "jarvis:selected_project";
   const ITEMS_PER_PAGE = 5;
+  const TIMETABLE_PER_PAGE = 5;
 
   const state = {
     projects: [],
@@ -10,6 +11,7 @@
     tickets: [],
     features: [],
     timetable: [],
+    timetableCurrentPage: 1,
     activity: [],
     search: "",
     filter: "all",
@@ -42,6 +44,10 @@
     featureList: $("feature-list"),
     btnOpenAddFeature: $("btn-open-add-feature"),
     timetableAdminList: $("timetable-admin-list"),
+    timetablePagination: $("timetable-pagination"),
+    timetablePrev: $("timetable-prev"),
+    timetableNext: $("timetable-next"),
+    timetablePageInfo: $("timetable-page-info"),
     btnOpenAddTimetable: $("btn-open-add-timetable"),
     timetableBadge: $("timetable-badge"),
     tickets: $("ticket-list"),
@@ -375,6 +381,7 @@
 
     if (!state.currentProject) {
       els.timetableAdminList.innerHTML = '<div class="empty">Pilih proyek terlebih dahulu.</div>';
+      if (els.timetablePagination) els.timetablePagination.hidden = true;
       return;
     }
 
@@ -385,10 +392,19 @@
           <h3>Belum ada agenda time table bulanan</h3>
           <p>Tambahkan target pekerjaan mingguan agar tim dan klien yayasan dapat memantau roadmap bulanan secara transparan.</p>
         </div>`;
+      if (els.timetablePagination) els.timetablePagination.hidden = true;
       return;
     }
 
-    els.timetableAdminList.innerHTML = state.timetable
+    // Logika Pagination Timetable Admin (5 task per halaman)
+    const totalPages = Math.max(1, Math.ceil(state.timetable.length / TIMETABLE_PER_PAGE));
+    if (state.timetableCurrentPage > totalPages) state.timetableCurrentPage = totalPages;
+    if (state.timetableCurrentPage < 1) state.timetableCurrentPage = 1;
+
+    const startIdx = (state.timetableCurrentPage - 1) * TIMETABLE_PER_PAGE;
+    const pagedTasks = state.timetable.slice(startIdx, startIdx + TIMETABLE_PER_PAGE);
+
+    els.timetableAdminList.innerHTML = pagedTasks
       .map((t) => {
         let badgeClass = "badge-tt-planned";
         let badgeText = "Planned";
@@ -419,6 +435,20 @@
         `;
       })
       .join("");
+
+    // Update Navigasi Pagination Timetable
+    if (els.timetablePagination) {
+      els.timetablePagination.hidden = false;
+      if (els.timetablePrev) {
+        els.timetablePrev.disabled = state.timetableCurrentPage <= 1;
+      }
+      if (els.timetableNext) {
+        els.timetableNext.disabled = state.timetableCurrentPage >= totalPages;
+      }
+      if (els.timetablePageInfo) {
+        els.timetablePageInfo.textContent = `Halaman ${state.timetableCurrentPage} dari ${totalPages}`;
+      }
+    }
 
     // Listeners toggle status
     els.timetableAdminList.querySelectorAll(".btn-status-toggle").forEach((btn) => {
@@ -740,6 +770,7 @@
     if (!project) return;
     state.currentProject = project;
     state.currentPage = 1;
+    state.timetableCurrentPage = 1;
     localStorage.setItem(STORAGE_KEY, project.name);
     els.switcher.value = project.name;
     els.btnDeleteProject.hidden = false;
@@ -1013,6 +1044,25 @@
       if (state.currentPage < totalPages) {
         state.currentPage++;
         renderChangelog();
+      }
+    });
+  }
+
+  if (els.timetablePrev) {
+    els.timetablePrev.addEventListener("click", () => {
+      if (state.timetableCurrentPage > 1) {
+        state.timetableCurrentPage--;
+        renderTimetable();
+      }
+    });
+  }
+
+  if (els.timetableNext) {
+    els.timetableNext.addEventListener("click", () => {
+      const totalPages = Math.ceil(state.timetable.length / TIMETABLE_PER_PAGE);
+      if (state.timetableCurrentPage < totalPages) {
+        state.timetableCurrentPage++;
+        renderTimetable();
       }
     });
   }
