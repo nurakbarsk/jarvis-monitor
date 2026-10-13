@@ -163,12 +163,12 @@ try {
                 jsonResponse(['error' => "Proyek \"{$projectName}\" tidak ditemukan."], 404);
             }
 
-            // 1. Changelogs (limit 50 terbaru)
-            $stmtLogs = $db->prepare('SELECT id, project_name, commit_message, commit_type, created_at FROM changelogs WHERE project_name = ? ORDER BY created_at DESC, id DESC LIMIT 50');
+            // 1. Changelogs (limit 20 commit terbaru)
+            $stmtLogs = $db->prepare('SELECT id, project_name, commit_message, commit_type, created_at FROM changelogs WHERE project_name = ? ORDER BY created_at DESC, id DESC LIMIT 20');
             $stmtLogs->execute([$projectName]);
             $changelogs = $stmtLogs->fetchAll();
 
-            // 2. Tickets (urutkan Open -> In Progress -> Resolved, lalu terbaru)
+            // 2. Tickets (urutkan Open -> In Progress -> Done/Resolved, lalu terbaru)
             $stmtTickets = $db->prepare("
                 SELECT id, project_name, reporter_name, category, issue_description, image_url, status, created_at
                 FROM tickets
@@ -177,7 +177,9 @@ try {
                     CASE status
                         WHEN 'Open' THEN 1
                         WHEN 'In Progress' THEN 2
-                        ELSE 3
+                        WHEN 'Done' THEN 3
+                        WHEN 'Resolved' THEN 3
+                        ELSE 4
                     END,
                     created_at DESC, id DESC
             ");
@@ -237,7 +239,7 @@ try {
                 $id = (int)($input['id'] ?? 0);
                 $status = trim((string)($input['status'] ?? 'Open'));
 
-                $validStatuses = ['Open', 'In Progress', 'Resolved'];
+                $validStatuses = ['Open', 'In Progress', 'Resolved', 'Done'];
                 if (!in_array($status, $validStatuses, true)) {
                     jsonResponse(['error' => 'Status tiket tidak valid.'], 400);
                 }
@@ -725,6 +727,226 @@ try {
                 'project_name'   => $repoName,
                 'commits_saved'  => $inserted,
             ]);
+            break;
+
+        /* -----------------------------------------------------------------
+         * 9. UPDATE TICKET STATUS (DEDICATED ACTION)
+         * ----------------------------------------------------------------- */
+        case 'update_ticket_status':
+            $id = (int)($input['id'] ?? 0);
+            $status = trim((string)($input['status'] ?? 'Open'));
+
+            if ($id <= 0) {
+                jsonResponse(['error' => 'ID tiket tidak valid.'], 400);
+            }
+
+            $validStatuses = ['Open', 'In Progress', 'Resolved', 'Done'];
+            if (!in_array($status, $validStatuses, true)) {
+                jsonResponse(['error' => 'Status tiket tidak valid. Pilihan: Open, In Progress, Resolved, Done.'], 400);
+            }
+
+            $stmtUp = $db->prepare('UPDATE tickets SET status = ? WHERE id = ?');
+            $stmtUp->execute([$status, $id]);
+
+            $stmtGet = $db->prepare('SELECT id, project_name, reporter_name, category, issue_description, image_url, status, created_at FROM tickets WHERE id = ?');
+            $stmtGet->execute([$id]);
+            $ticket = $stmtGet->fetch();
+
+            if (!$ticket) {
+                jsonResponse(['error' => 'Tiket tidak ditemukan.'], 404);
+            }
+
+            jsonResponse([
+                'ok'      => true,
+                'message' => "Status tiket #{$id} diubah menjadi {$status}.",
+                'ticket'  => $ticket
+            ]);
+            break;
+
+        /* -----------------------------------------------------------------
+         * 10. DELETE TICKET (DEDICATED ACTION)
+         * ----------------------------------------------------------------- */
+        case 'delete_ticket':
+            $id = (int)($input['id'] ?? 0);
+            if ($id <= 0) {
+                jsonResponse(['error' => 'ID tiket tidak valid.'], 400);
+            }
+
+            $stmtFind = $db->prepare('SELECT * FROM tickets WHERE id = ?');
+            $stmtFind->execute([$id]);
+            $ticket = $stmtFind->fetch();
+
+            if (!$ticket) {
+                jsonResponse(['error' => 'Tiket tidak ditemukan.'], 404);
+            }
+
+            // Hapus berkas gambar jika ada
+            if (!empty($ticket['image_url'])) {
+                $filePath = __DIR__ . '/' . ltrim($ticket['image_url'], '/');
+                if (file_exists($filePath) && is_file($filePath)) {
+                    @unlink($filePath);
+                }
+            }
+
+            $stmtDel = $db->prepare('DELETE FROM tickets WHERE id = ?');
+            $stmtDel->execute([$id]);
+
+            jsonResponse([
+                'ok'      => true,
+                'message' => 'Tiket berhasil dihapus.',
+                'ticket'  => $ticket
+            ]);
+            break;
+
+        /* -----------------------------------------------------------------
+         * 11. DELETE PROJECT (DEDICATED ACTION)
+         * ----------------------------------------------------------------- */
+        case 'delete_project':
+            $id = (int)($input['id'] ?? 0);
+            if ($id <= 0) {
+                jsonResponse(['error' => 'ID proyek tidak valid.'], 400);
+            }
+
+            $stmtFind = $db->prepare('SELECT id, name FROM projects WHERE id = ?');
+            $stmtFind->execute([$id]);
+            $project = $stmtFind->fetch();
+
+            if (!$project) {
+                jsonResponse(['error' => 'Proyek tidak ditemukan.'], 404);
+            }
+
+            $stmtDel = $db->prepare('DELETE FROM projects WHERE id = ?');
+            $stmtDel->execute([$id]);
+
+            jsonResponse([
+                'ok'      => true,
+                'message' => "Proyek \"{$project['name']}\" beserta seluruh relasinya berhasil dihapus.",
+                'project' => $project
+            ]);
+            break;
+
+        /* -----------------------------------------------------------------
+         * 12. FEATURES ALIASES (DELETE & UPDATE)
+         * ----------------------------------------------------------------- */
+        case 'delete_feature':
+            $id = (int)($input['id'] ?? 0);
+            if ($id <= 0) {
+                jsonResponse(['error' => 'ID fitur tidak valid.'], 400);
+            }
+
+            $stmtFind = $db->prepare('SELECT * FROM features WHERE id = ?');
+            $stmtFind->execute([$id]);
+            $feat = $stmtFind->fetch();
+
+            if (!$feat) {
+                jsonResponse(['error' => 'Fitur tidak ditemukan.'], 404);
+            }
+
+            $stmtDel = $db->prepare('DELETE FROM features WHERE id = ?');
+            $stmtDel->execute([$id]);
+
+            jsonResponse([
+                'ok'      => true,
+                'message' => 'Fitur berhasil dihapus.',
+                'feature' => $feat
+            ]);
+            break;
+
+        case 'update_feature':
+            $id = (int)($input['id'] ?? 0);
+            if ($id <= 0) {
+                jsonResponse(['error' => 'ID fitur tidak valid.'], 400);
+            }
+
+            $stmtFind = $db->prepare('SELECT * FROM features WHERE id = ?');
+            $stmtFind->execute([$id]);
+            $existing = $stmtFind->fetch();
+
+            if (!$existing) {
+                jsonResponse(['error' => 'Fitur tidak ditemukan.'], 404);
+            }
+
+            $featureName = isset($input['feature_name']) ? trim((string)$input['feature_name']) : $existing['feature_name'];
+            $description = isset($input['description']) ? trim((string)$input['description']) : $existing['description'];
+            $docUrl = isset($input['doc_url']) ? trim((string)$input['doc_url']) : $existing['doc_url'];
+            $status = in_array($input['status'] ?? '', ['Planned', 'In Progress', 'Done'], true) ? $input['status'] : $existing['status'];
+
+            $stmtUp = $db->prepare('UPDATE features SET feature_name = ?, description = ?, doc_url = ?, status = ? WHERE id = ?');
+            $stmtUp->execute([$featureName, $description, $docUrl, $status, $id]);
+
+            $stmtFind->execute([$id]);
+            jsonResponse([
+                'ok'      => true,
+                'message' => 'Fitur berhasil diperbarui.',
+                'feature' => $stmtFind->fetch()
+            ]);
+            break;
+
+        /* -----------------------------------------------------------------
+         * 13. TIMETABLES ALIASES (DELETE & UPDATE STATUS)
+         * ----------------------------------------------------------------- */
+        case 'delete_timetable':
+            $id = (int)($input['id'] ?? 0);
+            if ($id <= 0) {
+                jsonResponse(['error' => 'ID task tidak valid.'], 400);
+            }
+
+            $stmtFind = $db->prepare('SELECT * FROM timetables WHERE id = ?');
+            $stmtFind->execute([$id]);
+            $task = $stmtFind->fetch();
+
+            if (!$task) {
+                jsonResponse(['error' => 'Task tidak ditemukan.'], 404);
+            }
+
+            $stmtDel = $db->prepare('DELETE FROM timetables WHERE id = ?');
+            $stmtDel->execute([$id]);
+
+            jsonResponse([
+                'ok'   => true,
+                'task' => $task
+            ]);
+            break;
+
+        case 'update_timetable_status':
+            $id = (int)($input['id'] ?? 0);
+            $status = trim((string)($input['status'] ?? 'Planned'));
+
+            $valid = ['Planned', 'In Progress', 'Done'];
+            if (!in_array($status, $valid, true)) {
+                jsonResponse(['error' => 'Status roadmap tidak valid.'], 400);
+            }
+
+            $stmtUp = $db->prepare('UPDATE timetables SET status = ?, updated_at = NOW() WHERE id = ?');
+            $stmtUp->execute([$status, $id]);
+
+            $stmtGet = $db->prepare('SELECT * FROM timetables WHERE id = ?');
+            $stmtGet->execute([$id]);
+            $task = $stmtGet->fetch();
+
+            if (!$task) {
+                jsonResponse(['error' => 'Task tidak ditemukan.'], 404);
+            }
+
+            jsonResponse(['ok' => true, 'task' => $task]);
+            break;
+
+        /* -----------------------------------------------------------------
+         * 14. GITHUB COMMIT SYNC (API INTEGRATION)
+         * ----------------------------------------------------------------- */
+        case 'sync_github':
+            require_once __DIR__ . '/sync_github.php';
+
+            $projectName = trim((string)($input['project'] ?? ($input['project_name'] ?? '')));
+            $token = trim((string)($input['token'] ?? '')) ?: null;
+
+            if (empty($projectName)) {
+                jsonResponse(['error' => 'Parameter "project" wajib disertakan untuk sinkronisasi GitHub.'], 400);
+            }
+
+            $res = syncGitHubCommits($projectName, $token);
+            $code = $res['ok'] ? 200 : 400;
+            jsonResponse($res, $code);
             break;
 
         default:

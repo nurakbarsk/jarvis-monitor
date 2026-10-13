@@ -32,6 +32,7 @@
     chartTable: $("chart-table-body"),
     trend: $("activity-trend"),
     changelog: $("changelog-list"),
+    btnSyncGithub: $("btn-sync-github"),
     featureList: $("feature-list"),
     btnOpenAddFeature: $("btn-open-add-feature"),
     timetableAdminList: $("timetable-admin-list"),
@@ -962,6 +963,30 @@
       renderChangelog();
     });
   });
+
+  if (els.btnSyncGithub) {
+    els.btnSyncGithub.addEventListener("click", async () => {
+      if (!state.currentProject) {
+        alert("Pilih proyek terlebih dahulu.");
+        return;
+      }
+      const origHtml = els.btnSyncGithub.innerHTML;
+      try {
+        els.btnSyncGithub.disabled = true;
+        els.btnSyncGithub.innerHTML = `<span style="display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite;"></span> <span>Sync…</span>`;
+        const res = await fetch(`api.php?action=sync_github&project=${encodeURIComponent(state.currentProject.name)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Gagal menyinkronkan commit");
+        await loadData({ silent: true });
+        alert(data.message || "Sinkronisasi commit GitHub selesai!");
+      } catch (err) {
+        alert("Gagal sinkronisasi: " + err.message);
+      } finally {
+        els.btnSyncGithub.disabled = false;
+        els.btnSyncGithub.innerHTML = origHtml;
+      }
+    });
+  }
 
   $("cal-prev").addEventListener("click", () => {
     state.calendar = new Date(state.calendar.getFullYear(), state.calendar.getMonth() - 1, 1);

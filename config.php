@@ -7,13 +7,29 @@
 declare(strict_types=1);
 
 // Set timezone default (WIB / UTC+7)
-date_default_timezone_set('Asia/Jakarta');
+// Auto-load .env jika tersedia (memudahkan testing di lokal tanpa mengubah config produksi)
+if (file_exists(__DIR__ . '/.env')) {
+    $envLines = @file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+    foreach ($envLines as $envLine) {
+        $envLine = trim($envLine);
+        if ($envLine === '' || str_starts_with($envLine, '#')) {
+            continue;
+        }
+        if (str_contains($envLine, '=')) {
+            [$k, $v] = explode('=', $envLine, 2);
+            $k = trim($k);
+            $v = trim($v, " \t\n\r\0\x0B\"'");
+            putenv("{$k}={$v}");
+            $_ENV[$k] = $v;
+        }
+    }
+}
 
-// Kredensial Database MySQL / MariaDB (Sesuaikan dengan data cPanel MySQL Anda)
+// Kredensial Database MySQL / MariaDB (Dapat dioverride via .env di lokal atau diset default untuk hosting)
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_NAME', getenv('DB_NAME') ?: 'cnnelcmz_jarvis');
 define('DB_USER', getenv('DB_USER') ?: 'cnnelcmz_jarvis');
-define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
 define('DB_PORT', (int)(getenv('DB_PORT') ?: 3306));
 
 // Kredensial Telegram Bot
@@ -146,6 +162,9 @@ function parseRepoName(string $urlOrName): string
 
 /**
  * Klasifikasi prefix pesan commit GitHub
+ * - fitur: feat, feature, fitur, add, new, tambah
+ * - bugfix: fix, bug, error, patch, resolve, perbaikan
+ * - update: lainnya (refactor, chore, docs, update, dll)
  *
  * @param string $message
  * @return string ('fitur' | 'bugfix' | 'update')
@@ -153,11 +172,42 @@ function parseRepoName(string $urlOrName): string
 function classifyCommit(string $message): string
 {
     $lower = strtolower(trim($message));
-    if (str_starts_with($lower, 'feat') || str_contains($lower, '[feat]')) {
+
+    // Cek keyword fitur
+    if (preg_match('/\b(feat|feature|fitur|add|new|tambah)\b|\[(feat|feature|fitur|add|new|tambah)\]/i', $lower)) {
         return 'fitur';
     }
-    if (str_starts_with($lower, 'fix') || str_contains($lower, '[fix]')) {
+
+    // Cek keyword bugfix
+    if (preg_match('/\b(fix|bug|error|patch|resolve|perbaikan)\b|\[(fix|bug|error|patch|resolve|perbaikan)\]/i', $lower)) {
         return 'bugfix';
     }
+
     return 'update';
+}
+
+/**
+ * Ekstrak owner dan repo dari URL GitHub atau string 'owner/repo'
+ *
+ * @param string $urlOrName
+ * @return array{0: string, 1: string}|null [owner, repo]
+ */
+function parseGitHubOwnerRepo(string $urlOrName): ?array
+{
+    $trimmed = trim($urlOrName);
+    if (empty($trimmed)) {
+        return null;
+    }
+
+    $trimmed = rtrim($trimmed, '/');
+    if (str_ends_with($trimmed, '.git')) {
+        $trimmed = substr($trimmed, 0, -4);
+    }
+
+    // Format git@github.com:owner/repo atau https://github.com/owner/repo
+    if (preg_match('#(?:github\.com[:/]|/|^)([^/:\s]+)/([^/:\s]+)$#i', $trimmed, $m)) {
+        return [trim($m[1]), trim($m[2])];
+    }
+
+    return null;
 }

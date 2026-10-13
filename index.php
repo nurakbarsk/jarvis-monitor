@@ -272,7 +272,15 @@
 
               <section class="card" id="changelog-card" aria-labelledby="changelog-title">
                 <div class="card-header">
-                  <h2 id="changelog-title">Riwayat Push GitHub</h2>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <h2 id="changelog-title">Riwayat Push GitHub</h2>
+                    <button class="btn btn-ghost" id="btn-sync-github" type="button" title="Tarik seluruh riwayat commit dari GitHub API" style="padding: 3px 8px; font-size: 11px; height: 26px; border-radius: 6px;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                      </svg>
+                      <span>Sync</span>
+                    </button>
+                  </div>
                   <div class="filter-group" role="group" aria-label="Filter tipe commit">
                     <button class="filter-btn is-active" type="button" data-filter="all" aria-pressed="true">Semua</button>
                     <button class="filter-btn" type="button" data-filter="fitur" aria-pressed="false">Fitur</button>
