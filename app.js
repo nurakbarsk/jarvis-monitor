@@ -466,7 +466,7 @@
 
         const imageHtml = ticket.image_url
           ? `<div class="ticket-attachment">
-               <a href="${escapeHtml((ticket.image_url || "").replace(/^/+/,""))}" target="_blank" rel="noopener" class="ticket-thumb-link" title="Klik untuk membuka screenshot ukuran penuh">
+               <a href="${escapeHtml(ticket.image_url || "")}" target="_blank" rel="noopener" class="ticket-thumb-link" title="Klik untuk membuka screenshot ukuran penuh">
                  <img src="${escapeHtml(ticket.image_url)}" alt="Screenshot #${ticket.id}" class="ticket-thumb" />
                  <span class="ticket-thumb-label">🔍 Lihat Screenshot</span>
                </a>
