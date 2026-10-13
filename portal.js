@@ -674,18 +674,13 @@
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (loadEvent) => {
-        if (els.filePreviewImg) els.filePreviewImg.src = loadEvent.target.result;
-        if (els.filePreviewName) els.filePreviewName.textContent = file.name;
-        if (els.filePreviewSize) {
-          const sizeKb = Math.round(file.size / 1024);
-          els.filePreviewSize.textContent = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
-        }
-        if (els.filePreviewCard) els.filePreviewCard.hidden = false;
-        if (els.fileCta) els.fileCta.hidden = true;
-      };
-      reader.readAsDataURL(file);
+      if (els.filePreviewName) els.filePreviewName.textContent = file.name;
+      if (els.filePreviewSize) {
+        const sizeKb = Math.round(file.size / 1024);
+        els.filePreviewSize.textContent = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
+      }
+      if (els.filePreviewCard) els.filePreviewCard.hidden = false;
+      if (els.fileCta) els.fileCta.hidden = true;
     });
   }
 
@@ -697,7 +692,6 @@
 
   function resetImagePreview() {
     if (els.ticketImage) els.ticketImage.value = "";
-    if (els.filePreviewImg) els.filePreviewImg.src = "";
     if (els.filePreviewCard) els.filePreviewCard.hidden = true;
     if (els.fileCta) els.fileCta.hidden = false;
   }
@@ -869,7 +863,6 @@
 
   function resetEditFile() {
     if (editImageInput) editImageInput.value = "";
-    if (editFilePreviewImg) editFilePreviewImg.src = "";
     if (editFilePreviewCard) editFilePreviewCard.hidden = true;
     if (editFileCta) editFileCta.hidden = false;
   }
@@ -885,18 +878,13 @@
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (loadEvent) => {
-        if (editFilePreviewImg) editFilePreviewImg.src = loadEvent.target.result;
-        if (editFilePreviewName) editFilePreviewName.textContent = file.name;
-        if (editFilePreviewSize) {
-          const sizeKb = Math.round(file.size / 1024);
-          editFilePreviewSize.textContent = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
-        }
-        if (editFilePreviewCard) editFilePreviewCard.hidden = false;
-        if (editFileCta) editFileCta.hidden = true;
-      };
-      reader.readAsDataURL(file);
+      if (editFilePreviewName) editFilePreviewName.textContent = file.name;
+      if (editFilePreviewSize) {
+        const sizeKb = Math.round(file.size / 1024);
+        editFilePreviewSize.textContent = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
+      }
+      if (editFilePreviewCard) editFilePreviewCard.hidden = false;
+      if (editFileCta) editFileCta.hidden = true;
     });
   }
 
